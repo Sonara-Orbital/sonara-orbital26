@@ -25,17 +25,23 @@ export default function SignupPage() {
 
         const {data, error} = await supabase.auth.signUp({
             email,
-            password
+            password,
+            options: {
+                data: {
+                    username: name // sends the username as metadata
+                }
+            }
         });
-
-        setLoading(true);
 
         if (error) {
             setError(error.message);
-        } else {
-            alert("Check your email for verification!");
-            router.push("/login");
+            return;
         }
+
+        setLoading(true);
+
+        alert("Check your email for verification!");
+        router.push("/login");
     };
 
     // send userData to backend
