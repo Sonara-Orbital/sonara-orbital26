@@ -1,19 +1,42 @@
 "use client";
 import { useState } from "react";
+import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
-    const handleSignup = async (e: React.FormEvent) => {
-        e.preventDefault();
-        // Send request to backend here
-        console.log({name})
-        console.log({email})
-        console.log({password})
-    }
 
     const [name, setName] = useState("");
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+
+    const supabase = createClient();
+
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        console.log({name});
+        console.log({email});
+        console.log({password});
+
+        const {data, error} = await supabase.auth.signUp({
+            email,
+            password
+        });
+
+        setLoading(true);
+
+        if (error) {
+            setError(error.message);
+        } else {
+            alert("Check your email for verification!");
+            router.push("/login");
+        }
+    };
 
     // send userData to backend
     const userData = {
@@ -63,9 +86,9 @@ export default function SignupPage() {
                         required/>
                 </div>
                 <button 
-                    type="submit"
+                    type="submit" disabled={loading}
                     className="w-46 bg-neutral-500 text-gray-200">
-                        Create Account
+                        {loading ? "Creating Account.." : "Sign Up"}
                     </button>
             </form>
 
