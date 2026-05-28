@@ -14,17 +14,17 @@ export default function HomeContent() {
     return (
         <div className={styles.layout}>
             <aside className={`${styles.sidebar} ${collapsedBar ? styles.collapsedBar : ""}`}>
-                <button className={styles.toggle} onClick={() => {
-                        setCollapsedBar(!collapsedBar);
-                        console.log("collapse");
-                        }}>
-                    {collapsedBar ? ">" : "<"}
-                </button>
+                <div className={`${styles.buttonContainer} ${collapsedBar ? "" : styles.buttonContainerOpen}`}>
+                    <button className={`${collapsedBar ? styles.collapsedToggle : styles.toggle}`} onClick={() => {
+                            setCollapsedBar(!collapsedBar);
+                            console.log("collapse");
+                            }}>
+                        {collapsedBar ? "☰": "✕"}
+                    </button>
+                </div>
 
                 <nav className={styles.nav}>
-                <Link href="/profile"><button>Profile</button></Link>
-                    <a>Button</a>
-                    <a>Home</a>
+                    <a href="/profile">{collapsedBar ? "⍜" : "Profile"}</a>
                 </nav>
             </aside>
 

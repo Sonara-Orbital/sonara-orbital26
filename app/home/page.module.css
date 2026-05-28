@@ -4,41 +4,78 @@
 }
 
 .sidebar {
-  width: 240px;
-  background: #111827;
+  width: 22vw;
+  background: #3B5CCC;
   color: white;
   padding: 16px;
   transition: width 0.3s ease;
   overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  width: 22vw;
+  gap: 24px;
 }
 
-.collapsed {
-  width: 70px;
+
+.collapsedBar {
+  width: 7vw;
+}
+
+.buttonContainer {
+  width: 100%;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.buttonContainerOpen {
+  margin-bottom: 24px;
+}
+
+.collapsedToggle {
+  color: #e9eef8;
+  cursor: pointer;
+  border-radius: 8px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif, bold;
+  font-weight: 900;
 }
 
 .toggle {
-  background: #374151;
-  color: white;
+  color: #e9eef8;
   border: none;
-  padding: 8px 12px;
   cursor: pointer;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   border-radius: 8px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif, bold;
+  font-weight: 900;
+  position: absolute;
+  right: 20px;
+  top: 16px;
+  font-family: 'Inter', 'sans-serif';
 }
+
 
 .nav {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  top: 40px;
+  right: 20px;
 }
 
 .nav a {
-  color: white;
+  color: #F8FAFC;
+  cursor: pointer;
   text-decoration: none;
+  font-family: 'Inter', 'sans-serif';
 }
 
 .main {
   flex: 1;
   padding: 24px;
-  background: #f3f4f6;
+  background: #bee7ff;
 }
