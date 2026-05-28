@@ -15,6 +15,7 @@ export default function HomeContent() {
         <div className={styles.layout}>
             <aside className={`${styles.sidebar} ${collapsedBar ? styles.collapsedBar : ""}`}>
                 <div className={`${styles.buttonContainer} ${collapsedBar ? "" : styles.buttonContainerOpen}`}>
+                    <h1 className={collapsedBar ? styles.sidebarTitleClosed : styles.sidebarTitle}>{!collapsedBar && "Sonara"}</h1>
                     <button className={`${collapsedBar ? styles.collapsedToggle : styles.toggle}`} onClick={() => {
                             setCollapsedBar(!collapsedBar);
                             console.log("collapse");
@@ -29,7 +30,7 @@ export default function HomeContent() {
             </aside>
 
             <main className={styles.main}>
-                <h1>Main Content</h1>
+                <h1>Main Content!</h1>
             </main>
         </div>
     )
