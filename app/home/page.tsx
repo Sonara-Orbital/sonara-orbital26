@@ -1,6 +1,9 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/utils/supabase/server"
-import { cookies } from "next/headers"
+import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
+import styles from "./page.module.css";
+import Link from "next/link";
+import HomeContent from "./HomeContent";
 
 export default async function Home() {
     const cookieStore = await cookies();
@@ -9,13 +12,9 @@ export default async function Home() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        redirect("/login")
+        redirect("/login");
     }
 
-    return (
-        <div>
-            <h1>Welcome {user.email}</h1>
-            <p>Login Success</p>
-        </div>
-    )
+
+    return <HomeContent />;
 }

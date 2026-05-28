@@ -1,0 +1,44 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  background: #111827;
+  color: white;
+  padding: 16px;
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+
+.collapsed {
+  width: 70px;
+}
+
+.toggle {
+  background: #374151;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nav a {
+  color: white;
+  text-decoration: none;
+}
+
+.main {
+  flex: 1;
+  padding: 24px;
+  background: #f3f4f6;
+}
