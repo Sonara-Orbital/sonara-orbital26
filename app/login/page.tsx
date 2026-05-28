@@ -1,10 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
+import { useRouter } from 'next/navigation';
+
 
 export default function LoginPage() {
-    
+    const router = useRouter();
     const [loginInput, setLoginInput] = useState("");
     const [password, setPassword] = useState("");
     
@@ -49,11 +51,15 @@ export default function LoginPage() {
             email: targetEmail,
             password: password
         });
+
         if (error) {
             console.error("Login failed..... ", error.message)
             alert("Invalid Username/Password");
         } else {
-            console.log("SIGNED IN!!!")
+            if (data?.session) {
+                console.log("SIGNED IN!!!")
+                router.push("/home")
+            }
         }
      }
 
@@ -73,9 +79,7 @@ export default function LoginPage() {
             </div>
             {/* Login button */}
             {/*  HAVENT LINKED LOGIN PAGE YET */}
-            <Link href="/home">
-                <button type="submit" className="bg-blue-500 text-white rounded py-2 px-4 mt-4 hover:bg-blue-600 flex">Login</button>
-            </Link>
+            <button type="submit" className="bg-blue-500 text-white rounded py-2 px-4 mt-4 hover:bg-blue-600 flex">Login</button>
         </form>
             {/* Sign up*/}
             <div className="mt-4">

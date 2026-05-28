@@ -85,7 +85,7 @@ export default function SignupPage() {
                         Password
                     </label>
                     <input type="text" 
-                        placeholder="***" 
+                        placeholder="******" 
                         value={password} 
                         onChange={(e) => setPassword(e.target.value)}
                         className="border border-2 border-neutral-500 my-1 ml-2"

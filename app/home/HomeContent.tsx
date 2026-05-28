@@ -14,12 +14,15 @@ export default function HomeContent() {
     return (
         <div className={styles.layout}>
             <aside className={`${styles.sidebar} ${collapsedBar ? styles.collapsedBar : ""}`}>
-                <button className={styles.toggle} onClick={() => setCollapsedBar(!collapsedBar)}>
+                <button className={styles.toggle} onClick={() => {
+                        setCollapsedBar(!collapsedBar);
+                        console.log("collapse");
+                        }}>
                     {collapsedBar ? ">" : "<"}
                 </button>
 
                 <nav className={styles.nav}>
-                    <a>Profile</a>
+                <Link href="/profile"><button>Profile</button></Link>
                     <a>Button</a>
                     <a>Home</a>
                 </nav>
