@@ -1,21 +1,26 @@
 import { createClient } from '@/utils/supabase/server' 
 import { cookies } from 'next/headers'
+import { redirect } from "next/navigation"
 
 export default async function UserProfile() {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
 
-    /*
+    
     const { data: { user}, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
         return <p>Not authenticated</p>;
     }
-    
-    const userId = data.user.id;
-    */
 
-    const userId = "3fde3f1d-1308-4f73-ad68-cf353cc37ee8";
+    if (!user) {
+      redirect("/login")
+    };
+    
+    const userId = user.id;
+    
+
+    //const userId = "3fde3f1d-1308-4f73-ad68-cf353cc37ee8";
 
     const { data: userProfile, error: dbError } = await supabase
     .from('Users')

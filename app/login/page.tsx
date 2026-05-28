@@ -73,7 +73,9 @@ export default function LoginPage() {
             </div>
             {/* Login button */}
             {/*  HAVENT LINKED LOGIN PAGE YET */}
-            <button type="submit" className="bg-blue-500 text-white rounded py-2 px-4 mt-4 hover:bg-blue-600 flex">Login</button>
+            <Link href="/home">
+                <button type="submit" className="bg-blue-500 text-white rounded py-2 px-4 mt-4 hover:bg-blue-600 flex">Login</button>
+            </Link>
         </form>
             {/* Sign up*/}
             <div className="mt-4">
