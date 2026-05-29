@@ -19,9 +19,6 @@ export default async function UserProfile() {
     
     const userId = user.id;
     
-
-    //const userId = "3fde3f1d-1308-4f73-ad68-cf353cc37ee8";
-
     const { data: userProfile, error: dbError } = await supabase
     .from('Users')
     .select('id, username, display_name, avatar_url, created_at')

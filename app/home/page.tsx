@@ -5,7 +5,7 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import HomeContent from "./HomeContent";
 
-export default async function Home() {
+export default async function Home({ children }: { children: React.ReactNode}) {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
@@ -15,6 +15,11 @@ export default async function Home() {
         redirect("/login");
     }
 
+    const metadata = user.user_metadata;
 
-    return <HomeContent />;
+    return (
+                <HomeContent userMetadata={metadata}>
+                    {children}
+                </HomeContent>
+    )
 }
