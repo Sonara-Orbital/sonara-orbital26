@@ -14,7 +14,7 @@ export default function HomeContent() {
     return (
         <div className={styles.layout}>
             <aside className={`${styles.sidebar} ${collapsedBar ? styles.collapsedBar : ""}`}>
-                <div className={`${styles.buttonContainer} ${collapsedBar ? "" : styles.buttonContainerOpen}`}>
+                <div className={`${collapsedBar ? styles.buttonContainer : styles.buttonContainerOpen}`}>
                     <h1 className={collapsedBar ? styles.sidebarTitleClosed : styles.sidebarTitle}>{!collapsedBar && "Sonara"}</h1>
                     <button className={`${collapsedBar ? styles.collapsedToggle : styles.toggle}`} onClick={() => {
                             setCollapsedBar(!collapsedBar);
@@ -23,10 +23,13 @@ export default function HomeContent() {
                         {collapsedBar ? "☰": "✕"}
                     </button>
                 </div>
-
-                <nav className={styles.nav}>
-                    <a href="/profile">{collapsedBar ? "⍜" : "Profile"}</a>
-                </nav>
+                <div className={collapsedBar? "" : styles.navContainer}>
+                    <nav className={`${styles.nav} ${ collapsedBar ? styles.navClosed : styles.nav}`}>
+                        <a href="/profile">{collapsedBar ? "⍜" : "Profile"}</a>
+                        <a href="/profile">{collapsedBar ? "●" : "Placeholder"}</a>
+                        <a href="/profile">{collapsedBar ? "●" : "Placeholder"}</a>
+                    </nav>
+                </div>
             </aside>
 
             <main className={styles.main}>
