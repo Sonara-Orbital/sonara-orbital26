@@ -36,11 +36,14 @@ export default function ProfileContent({ userProfile, children}: ProfileContentP
                     <div className={styles.profileRing}>
                         <img src = {userProfile.avatar_url} className={styles.profilePic}/>
                     </div>
-                    <h1 className={styles.userName}>{userProfile.username}</h1>
+                    <h1 className={`${styles.userName} font-semibold `}>{userProfile.username}</h1>
                     <div className={styles.titleButtonBoxOuter}>
                         <div className={styles.titleButtonBoxInner}>
-                            <a href="/home" className={styles.TitleButton}>Home</a>
-                            <button onClick={handleSignOut} disabled={isPending} className={styles.TitleButton}>Log Out</button>
+                            <a href="/home" className="bg-[#3B5CCC] hover:bg-[#2f4da8] flex items-center font-semibold text-[#F8FAFC] transition hover:bg-[#2f4da8] rounded-lg bg-[#3B5CCC] px-7 py-3 text-white py-2 px-4 mt-4 mb-3 flex justify-center">Home</a>
+                            <button onClick={handleSignOut} disabled={isPending} 
+                                className="bg-[#3B5CCC] hover:bg-[#2f4da8] flex items-center font-semibold text-[#F8FAFC] transition hover:bg-[#2f4da8] rounded-lg bg-[#3B5CCC] px-7 py-3 text-white py-2 px-4 mt-4 mb-3 flex justify-center">
+                                    Sign Out
+                            </button>
                         </div>
                     </div>
                 </div>

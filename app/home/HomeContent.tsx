@@ -35,9 +35,10 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 </div>
                 <div className={collapsedBar? "" : styles.navContainer}>
                     <nav className={`${styles.nav} ${ collapsedBar ? styles.navClosed : styles.nav}`}>
-                        <a href="/profile">{collapsedBar ? "⍜" : "Profile"}</a>
-                        <Link href="/profile"><button>{collapsedBar ? "●" : "Placeholder"}</button></Link>
-                        <a href="/profile">{collapsedBar ? "●" : "Placeholder"}</a>
+                        <a href="/profile">{collapsedBar ? "⍜" : "Vibe Generator"}</a>
+                        <Link href="/profile"><button>{collapsedBar ? "●" : "Song Discovery"}</button></Link>
+                        <a href="/song_library">{collapsedBar ? "●" : "Song Library"}</a>
+                        <a href="/profile">{collapsedBar ? "●" : "Friends"}</a>
                     </nav>
                 </div>
                 <div className={styles.userContainer}>
@@ -54,6 +55,9 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
             <main className={styles.main}>
                 <h1>Main Content!</h1>
+                <div className="fixed bottom-6 w-full flex gap-4"> +
+                    <input placeholder="Enter Prompt..." type="text" className="pl-2 border rounded-xl w-full max-w-240"></input>
+                </div>
             </main>
         </div>
     )

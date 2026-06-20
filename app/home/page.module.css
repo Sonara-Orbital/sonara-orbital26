@@ -2,7 +2,7 @@
   display: flex;
   min-height: 100vh;
   color: #3b555c;
-  font-family: "Inter", serif;
+  font-family: "Inter", sans-serif;
 }
 
 .sidebar {
@@ -27,7 +27,7 @@
 
 .sidebarTitle {
   color: #F8FAFC;
-  font-family: 'Inter', serif; 
+  font-family: 'Inter', sans-serif; 
   font-size: 1.25rem;
   left: 20px;
   top: 16px;
@@ -70,7 +70,7 @@
   color: #e9eef8;
   cursor: pointer;
   font-weight: 900;
-  font-family: "Inter", serif;
+  font-family: "Inter", sans-serif;
 }
 
 .toggle {
@@ -78,7 +78,7 @@
   border: none;
   cursor: pointer;
   border-radius: 8px;
-  font-family: "Inter", serif;
+  font-family: "Inter", sans-serif;
   font-weight: 900;
 }
 
@@ -106,7 +106,7 @@
   color: #F8FAFC;
   cursor: pointer;
   text-decoration: none;
-  font-family: 'Inter', 'sans-serif';
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
   padding: 0px 10px;
 }
@@ -114,6 +114,7 @@
 .nav button {
   cursor: pointer;
   text-align: left;
+  font-family: 'Inter', sans-serif;
 }
 
 .nav a:hover {
