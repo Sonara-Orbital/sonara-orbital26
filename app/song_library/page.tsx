@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { addSong } from "@/actions/songs"
 export const dynamic = "force-dynamic";
+import Link from "next/link";
 
 export default async function LibraryPage() {
   const cookieStore = await cookies();
@@ -37,6 +38,9 @@ export default async function LibraryPage() {
   return (
     // TEST ADD SONGS
     <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
+      <Link className="absolute left-6 top-6 hover:text-blue-500" href="/home" > &lt; 
+        <span className="hover:underline"> back </span>
+      </Link>
         <form action={async () => {
             "use server"
             await addSong({
@@ -72,7 +76,7 @@ export default async function LibraryPage() {
             <div 
       key={song.id}
       className="group relative aspect-square overflow-hidden rounded-xl border border-black shadow-lg duration-400 hover:scale-[1.02] hover:shadow-2xl"
-    > 
+        > 
         {/* 1. Album Cover */}
         {song.album_art_url ? (
           <img 
