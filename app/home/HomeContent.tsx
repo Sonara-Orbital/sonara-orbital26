@@ -37,7 +37,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                     <nav className={`${styles.nav} ${ collapsedBar ? styles.navClosed : styles.nav}`}>
                         <a href="/profile">{collapsedBar ? "⍜" : "Vibe Generator"}</a>
                         <Link href="/profile"><button>{collapsedBar ? "●" : "Song Discovery"}</button></Link>
-                        <a href="/song_library">{collapsedBar ? "●" : "Song Library"}</a>
+                        <a href="/song-library">{collapsedBar ? "●" : "Song Library"}</a>
                         <a href="/profile">{collapsedBar ? "●" : "Friends"}</a>
                     </nav>
                 </div>
