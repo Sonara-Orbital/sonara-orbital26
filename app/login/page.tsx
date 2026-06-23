@@ -80,7 +80,7 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="flex flex-col">
                 {/* Username */}
                 <label className="mb-1 font-semibold text-sm text-[#334155]"> Email or Username </label>
-                <input onChange={(e) => setLoginInput(e.target.value)} type="text" placeholder="Email or Username" className="bg-[#F0F4FC]/70 w-90 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-grey-100/10 flex"/>
+                <input onChange={(e) => setLoginInput(e.target.value)} type="text" placeholder="Email or Username" className="bg-[#F0F4FC]/70 w-90 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-grey-100/10 flex focus:text-gray-900"/>
                 <div className="mt-4 max-w-83 text-[#334155] mt-3">
                     {/* Password and show password */} 
                     <label className="mb-1 font-semibold text-sm text-[#334155]"> Password </label>
