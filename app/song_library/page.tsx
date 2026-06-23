@@ -26,7 +26,7 @@ export default async function LibraryPage() {
     console.log("here", currUserSongs)
 
   if (dbError) {
-    console.error("❌ Failed to load library data:", dbError);
+    console.error("Failed to load library data:", dbError);
     return (
       <div className="p-8 text-red-500">
         <h2>Error loading your library</h2>
