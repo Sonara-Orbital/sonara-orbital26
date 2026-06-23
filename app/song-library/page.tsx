@@ -1,14 +1,18 @@
+"use client"
+
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { addSong } from "@/actions/songs"
+import { searchLibrary } from "@/actions/search"
+import { useState } from "react";
 export const dynamic = "force-dynamic";
 
 export default async function LibraryPage() {
+  const [query, setQuery] = useState("");
+  // Create cllient and get current user
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-
-  // Get current user
   const { data: { user } } = await supabase.auth.getUser();
 
   // Logout if not signed in
@@ -25,7 +29,7 @@ export default async function LibraryPage() {
     console.log("here", currUserSongs)
 
   if (dbError) {
-    console.error("❌ Failed to load library data:", dbError);
+    console.error("Unable to load library data:", dbError);
     return (
       <div className="p-8 text-red-500">
         <h2>Error loading your library</h2>
@@ -59,6 +63,9 @@ export default async function LibraryPage() {
         <h1 className="text-3xl font-bold tracking-tight">Your Library</h1>
         <p className="text-gray-400">You have {currUserSongs?.length || 0} songs saved</p>
       </header>
+
+      {/* Search bar */}
+      <input></input>
 
       {/* Empty library display */}
       {currUserSongs?.length === 0 ? (
