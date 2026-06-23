@@ -54,10 +54,14 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
         </button>
       </form>
 
-      <header className="mb-8">
+      <header className="mb-4">
         <h1 className="text-3xl font-bold tracking-tight">Your Library</h1>
         <p className="text-gray-400">You have {currUserSongs?.length || 0} songs saved</p>
       </header>
+
+      {/* SEARCH BAR */}
+      <input className="border border-black w-3xl rounded-sm mb-4" placeholder="Search for songs...
+      "></input>
 
       {currUserSongs?.length === 0 ? (
         <div className="text-center p-8 rounded-xl border border-black">
