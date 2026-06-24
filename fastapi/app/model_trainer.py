@@ -16,49 +16,42 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 PAGE_SIZE = 1000 
 
 start = 0
-vectors = []
-song_idxs = []
+songs = []
 
 while True:
     end = start + PAGE_SIZE - 1
-    batch_id = (
+    batch = (
         supabase.table("Song_Vectors")
-        .select("id")
+        .select("id, embedding")
         .order("id").range(start, end)
         .execute().data
     )
-
-    batch_v = (
-        supabase.table("Song_Vectors")
-        .select("embedding")
-        .order("id").range(start, end)
-        .execute().data
-    )
-
-    if not batch_v:
+    if not batch:
         break
 
-    song_idxs.extend(batch_id)
-    vectors.extend(batch_v)
+    songs.extend(batch)
     print(f"Loaded rows {start} to {end}")
     start += PAGE_SIZE
 
-training_vectors = []
-for dict in vectors:
+ids = []
+vectors = []
+for dict in songs:
     v = dict["embedding"]
     v = np.array(json.loads(v))
-    training_vectors.append(v)
+    i = dict["id"]
+    ids.append(i)
+    vectors.append(v)
 
 nn_model = NearestNeighbors(metric='cosine', algorithm='auto')
-training_vectors = np.stack(training_vectors)
+training_vectors = np.stack(vectors)
 print(training_vectors.shape)
 print(type(training_vectors))
 nn_model.fit(training_vectors)
 
 joblib.dump(
     {"model": nn_model,
-    "ids": song_idxs,
-    "vectors": vectors },
+    "ids": ids,
+    "vectors": training_vectors},
     "knn_model_joblib"
 )
 
