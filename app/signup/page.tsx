@@ -67,7 +67,7 @@ export default function SignupPage() {
                     </label>
                     <input type="text" placeholder="Jeff" value={name} 
                         onChange={(e) => setName(e.target.value)}
-                        className="mb-2 bg-[#F0F4FC]/70 w-90 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-grey-100/10 flex"
+                        className="mb-2 bg-[#F0F4FC]/70 w-90 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:text-gray-900 focus:ring-2 focus:ring-grey-100/10 flex"
                         required/>
                 </div>
 
@@ -80,7 +80,7 @@ export default function SignupPage() {
                         placeholder="ABC@gmail.com" 
                         value={email} 
                         onChange={(e) => setEmail(e.target.value)}
-                        className="mb-2 bg-[#F0F4FC]/70 w-90 border border-gray-300 rounded-xl py-2 px-4 focus:outline-none focus:ring-2 focus:ring-grey-100/10 flex"
+                        className="mb-2 bg-[#F0F4FC]/70 w-90 border border-gray-300 rounded-xl py-2 px-4 focus:outline-none focus:text-gray-900 focus:ring-2 focus:ring-grey-100/10 flex"
                         required/>
                 </div>
 
@@ -93,7 +93,7 @@ export default function SignupPage() {
                         placeholder="******" 
                         value={password} 
                         onChange={(e) => setPassword(e.target.value)}
-                        className="mb-5 bg-[#F0F4FC]/70 w-90 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-grey-100/10 flex"
+                        className="mb-5 bg-[#F0F4FC]/70 w-90 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:text-gray-900 focus:ring-2 focus:ring-grey-100/10 flex"
                         required/>
                 </div>
                 <button 
