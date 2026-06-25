@@ -8,7 +8,7 @@ import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
 import React from "react";
 import { HomeSidebar } from "@/components/ui/home-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
@@ -125,32 +125,34 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
    return (
     <SidebarProvider>
         <HomeSidebar />
-        <main className="w-full ">
-            <SidebarTrigger className="m-4" />
-            {songs.length === 0 ? <p>nothing inside songs</p> : 
-            songs.map((song, index) => (
-                <MusicCard key={index}
-                songName={song.track_name}
-                artistName={song.artist_name}
-                albumName={song.album_name}
-                imageUrl="" />
-            ))}
-            <form onSubmit={handleSubmit}>
-            <div className="w-7/10 text-center mt-60 ml-70">
-                <FieldLabel className="pt-5 pb-2"></FieldLabel>
-                    <ButtonGroup className="w-full">
-                        <InputGroup className="w-6/10">
-                            <InputGroupInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} className="w-full" placeholder="Piano Man by Billy Joel..." />
-                        </InputGroup>
-                        <ButtonGroup>
-                            <Button type="submit">Go</Button>
+        <SidebarInset>
+            <main className="w-full ">
+                <SidebarTrigger className="m-4" />
+                {songs.length === 0 ? <p>nothing inside songs</p> : 
+                songs.map((song, index) => (
+                    <MusicCard key={index}
+                    songName={song.track_name}
+                    artistName={song.artist_name}
+                    albumName={song.album_name}
+                    imageUrl="" />
+                ))}
+                <form onSubmit={handleSubmit}>
+                <div className="w-7/10 text-center mt-60 ml-70">
+                    <FieldLabel className="pt-5 pb-2"></FieldLabel>
+                        <ButtonGroup className="w-full">
+                            <InputGroup className="w-6/10">
+                                <InputGroupInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} className="w-full" placeholder="Piano Man by Billy Joel..." />
+                            </InputGroup>
+                            <ButtonGroup>
+                                <Button type="submit">Go</Button>
+                            </ButtonGroup>
                         </ButtonGroup>
-                    </ButtonGroup>
-                    <FieldDescription className="pl-1 pt-2">Enter the song and or artist you want to search for</FieldDescription>
-            </div>
-            </form>
-            {children}
-        </main>
+                        <FieldDescription className="pl-1 pt-2">Enter the song and or artist you want to search for</FieldDescription>
+                </div>
+                </form>
+                {children}
+            </main>
+        </SidebarInset>
     </SidebarProvider>
    )
 }

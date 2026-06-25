@@ -14,7 +14,9 @@ import {
 
 // Menu items.
 const items = [
-  { title: "PlaceHolder 1", url: "#", icon: Settings },
+  { title: "Home", url: "/home", icon: Home},
+  { title: "Song Discovery", url: "#", icon: Search},
+  { title: "My Library", url: "#", icon: Inbox},
 ]
 
 export function HomeSidebar() {
