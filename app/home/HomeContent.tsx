@@ -14,10 +14,17 @@ import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { POST } from "@/app/api/chat/route"
+import { MusicCard } from "@/components/ui/music-card";
 
 interface HomeContentProps {
     userMetadata: any;
     children: React.ReactNode;
+}
+
+interface Song {
+    track_name: string;
+    artist_name: string;
+    album_name: string;
 }
 
 export default function HomeContent({ userMetadata, children }: HomeContentProps) {
@@ -29,7 +36,11 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     const [profileOpen, setProfileOpen] = useState(false);
     const toggleProfile = () => setProfileOpen(!profileOpen);
 
+    const [songs, setSongs] = useState<Song[]>([]);
+    const [loaded, setLoaded] = useState(false);
+    
     const [inputVal, setInputVal] = useState("");
+
 
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
@@ -61,10 +72,11 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 })
             });
             const songData = await res.json();
-            console.log(songData);
+            const outputSongs: Song[] = songData.data;
+            setSongs(outputSongs);
+            console.log(songData.data);
 
-
-
+            setLoaded(true);
             setInputVal("");
 
         } catch (e) {
@@ -115,6 +127,14 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
         <HomeSidebar />
         <main className="w-full ">
             <SidebarTrigger className="m-4" />
+            {songs.length === 0 ? <p>nothing inside songs</p> : 
+            songs.map((song, index) => (
+                <MusicCard key={index}
+                songName={song.track_name}
+                artistName={song.artist_name}
+                albumName={song.album_name}
+                imageUrl="" />
+            ))}
             <form onSubmit={handleSubmit}>
             <div className="w-7/10 text-center mt-60 ml-70">
                 <FieldLabel className="pt-5 pb-2"></FieldLabel>

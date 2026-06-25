@@ -62,10 +62,14 @@ def recommender(song_name: str, artist_name="") -> list[str]:
         results.append(song_idxs[i])
     
     print(results)
+    results.pop(0)
 
     song_results = []
     for id in results:
-        song_results.append((supabase.table("Songs").select("track_name").eq("id", id).execute().data)[0]["track_name"])
+        record = supabase.table("Songs").select("track_name, album_name, artist_name").eq("id", id).execute().data[0]
+        song_results.append(record)
+    
+    print(song_results)
     
     return song_results
 

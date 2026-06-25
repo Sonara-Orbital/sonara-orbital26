@@ -6,6 +6,16 @@ const nextConfig: NextConfig = {
   devIndicators: {
     position: "top-right",
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'i.scdn.co',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
