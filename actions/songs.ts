@@ -22,6 +22,22 @@ export async function addSong(song: GeneratedSong) {
             };
         }
 
+        // Check for song already in library
+        const { data: checkSong, error: checkError } = await supabase
+            .from("User_saved_songs")
+            .select("song_id")
+            .eq("user_id", currUser.id)
+            .eq("song_id", song.id)
+            .maybeSingle()
+
+         if (checkError) {
+            console.error("Unable to access database");
+            return { sucess: false, error: "Unable to access database" };
+         } else if (checkSong) {
+            return { sucess: false, error: "Song already in library"};
+         }
+
+        // Add song to library
         console.log("USER ID IS ", currUser?.id);
         const {error: dbError } = await supabase
             .from("User_saved_songs")
