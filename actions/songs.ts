@@ -61,7 +61,7 @@ export async function addSong(song: GeneratedSong) {
              }
         }
 
-        revalidatePath("/song_library");
+        revalidatePath("/song-library");
 
         return { success: true};
     } catch (error) {

@@ -1,11 +1,12 @@
 "use client";
 
 import { addSong } from "@/actions/songs";
-import { ArrowUpDown, ArrowUpNarrowWide, ArrowDownWideNarrow } from "lucide-react";
+import { ArrowUpDown, ArrowUpNarrowWide, ArrowDownWideNarrow, Trash , Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { GeneratedSong } from "@/types/song";
 import { searchLibrary } from "@/actions/search";
+import { deleteSong } from "@/actions/delete";
 
 export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
   const [isAscending, setIsAscending] = useState(true);
@@ -57,8 +58,8 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
       <form
         action={async () => {
           await addSong({
-            id: "TRK-0000B8A600FC",
-            title: "Chill Song",
+            id: "TRK-0000B860FC",
+            title: "Testing AAAA",
             artist: "Pea man",
             duration: "4.4",
             bpm: null,
@@ -86,7 +87,7 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
       ></input>
       <ul className="w-full max-w-150 flex flex-col">
         {queryResults.map((song) => (
-          <li key={song.id} className="flex justify-between">
+          <li key={song.song_id} className="flex justify-between">
             <span className="font-bold">{song.title}</span>
             <span className=""> {song.artist}</span>
             {/* <span>{song}</span> */}
@@ -94,6 +95,7 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
         ))}
       </ul>
 
+      {/* DISPLAY SONGS */}
       {currUserSongs?.length === 0 ? (
         <div className="text-center p-8 rounded-xl border border-black">
           <p className="text-black mb-4">Library is empty... Start adding songs!</p>
@@ -127,6 +129,11 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
                   <span className="text-neutral-400 shrink-0">{song.genre}</span>
                 </div>
               </div>
+                {/* delete button */}
+                <button className="opacity-0 absolute top-4 right-4 hover:text-red-500 transition-all duration-250 group-hover:opacity-100 duration-300 ease-in-out"
+                  onClick={async () => deleteSong(song.id)}> 
+                    <Trash2 className="h-5 w-5"></Trash2>
+                </button>
             </div>
           ))}
         </div>
