@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function LibraryPage() {
   const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient(cookieStore);
 
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();

@@ -32,22 +32,6 @@ export default function ProfileContent({ userProfile, children}: ProfileContentP
     console.log(userProfile.username + "hello1" + joinDate + userProfile.display_name);
 
     return (
-<<<<<<< HEAD
-        <div className={styles.page}>
-            <div className={styles.leftContainer}>
-                <div className={styles.titleCard}> 
-                    <div className={styles.profileRing}>
-                        <img src = {userProfile.avatar_url} className={styles.profilePic}/>
-                    </div>
-                    <h1 className={`${styles.userName} font-semibold `}>{userProfile.username}</h1>
-                    <div className={styles.titleButtonBoxOuter}>
-                        <div className={styles.titleButtonBoxInner}>
-                            <a href="/home" className="bg-[#3B5CCC] hover:bg-[#2f4da8] flex items-center font-semibold text-[#F8FAFC] transition hover:bg-[#2f4da8] rounded-lg bg-[#3B5CCC] px-7 py-3 text-white py-2 px-4 mt-4 mb-3 flex justify-center">Home</a>
-                            <button onClick={handleSignOut} disabled={isPending} 
-                                className="bg-[#3B5CCC] hover:bg-[#2f4da8] flex items-center font-semibold text-[#F8FAFC] transition hover:bg-[#2f4da8] rounded-lg bg-[#3B5CCC] px-7 py-3 text-white py-2 px-4 mt-4 mb-3 flex justify-center">
-                                    Sign Out
-                            </button>
-=======
         <SidebarProvider>
             <HomeSidebar />
                 <SidebarInset>
@@ -70,7 +54,6 @@ export default function ProfileContent({ userProfile, children}: ProfileContentP
                         </div>
                         <div className={styles.rightContainer}>
                             <div className={styles.sideCard}></div>
->>>>>>> 4633efe9765cb449abca4e03b1bf68462df3db93
                         </div>
                     </div>
                 </SidebarInset>
