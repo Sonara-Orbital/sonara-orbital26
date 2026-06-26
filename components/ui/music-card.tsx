@@ -1,5 +1,3 @@
-import React from "react";
-import Image from "next/image";
 import { Card, CardDescription, CardTitle, CardContent } from "@/components/ui/card";
 
 interface MusicCardProps {
@@ -12,17 +10,15 @@ interface MusicCardProps {
 
 export function MusicCard({ songName, albumName, artistName, imageUrl, className }: MusicCardProps) {
     return (
-        <Card className="relative aspect-video overflow-hidden mx-auto w-full max-w-sm pt-0">
-            <img 
-                src={imageUrl}
-                alt="Album Cover"
-                className="absolute inset-0 z-10"
-            />
-            <div className="absolute p-10 inset-0 z-20">
-                <CardTitle>{songName}</CardTitle>
-                <CardDescription>in {albumName} by {artistName}</CardDescription>
-            </div>
-
+        <Card className="relative mx-auto my-5 ml-30 w-full max-w-sm pt-0">
+            <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
+                <img 
+                    src={imageUrl}
+                    alt="Album Cover"
+                    className="relative z-20 aspect-video w-full object-cover"
+                />
+                <CardTitle className="px-5">{songName}</CardTitle>
+                <CardDescription className="px-5">in "{albumName}" by "{artistName}"</CardDescription>
         </Card>
     )
 }

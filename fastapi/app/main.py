@@ -5,11 +5,12 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-import json, ast, os, joblib
+import json, ast, os, joblib, spotipy
 import musicbrainzngs as mbn
 import zstandard as zstd
+from spotipy.oauth2 import SpotifyClientCredentials
 
-load_dotenv()
+load_dotenv(dotenv_path=".env.local")
 
 app = FastAPI()
 
@@ -24,6 +25,9 @@ app.add_middleware(
 class DataInput(BaseModel):
     songName: str
     artistName: str
+
+auth_manager = SpotifyClientCredentials()
+sp = spotipy.Spotify(auth_manager=auth_manager)
 
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -61,20 +65,23 @@ def recommender(song_name: str, artist_name="") -> list[str]:
     for i in indices:
         results.append(song_idxs[i])
     
-    print(results)
+    #print(results)
+    #print("===========================================")
     results.pop(0)
 
     song_results = []
     for id in results:
-        record = supabase.table("Songs").select("track_name, album_name, artist_name").eq("id", id).execute().data[0]
-        song_results.append(record)
+        record = supabase.table("Songs").select("track_name").eq("id", id).execute().data[0]
+        song_name = record["track_name"]
+        print(song_name)
+        song_results.append(song_name)
     
-    print(song_results)
+    #print(song_results)
     
     return song_results
 
 
-#print(recommender("drag me down"))
+#print(recommender("radioactive", "Imagine Dragons"))
 
 @app.post("/api/process")
 async def recommend_song(inputData: DataInput):
