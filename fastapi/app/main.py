@@ -5,9 +5,10 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-import json, ast, os, joblib
+import json, ast, os, joblib, spotipy
 import musicbrainzngs as mbn
 import zstandard as zstd
+from spotipy.oauth2 import SpotifyClientCredentials
 
 load_dotenv()
 
@@ -24,6 +25,9 @@ app.add_middleware(
 class DataInput(BaseModel):
     songName: str
     artistName: str
+
+auth_manager = SpotifyClientCredentials()
+sp = spotipy.Spotify(auth_manager=auth_manager)
 
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -67,6 +71,16 @@ def recommender(song_name: str, artist_name="") -> list[str]:
     song_results = []
     for id in results:
         record = supabase.table("Songs").select("track_name, album_name, artist_name").eq("id", id).execute().data[0]
+        song_name = record["track_name"]
+        song_res = sp.search(q=song_name, limit=1, type='track')
+        items = song_res['tracks']['items']
+        if not items:
+            print("no album image found")
+        track = items[0]
+        album_images = track['album']['images']
+        img = album_images[0]['url']
+        record["album_image"] = img
+
         song_results.append(record)
     
     print(song_results)

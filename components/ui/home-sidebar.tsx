@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   SidebarFooter,
   SidebarHeader
 } from "@/components/ui/sidebar"
@@ -21,11 +22,11 @@ const items = [
 
 export function HomeSidebar() {
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem >
-              <span >SONARA</span>
+              <SidebarTrigger />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

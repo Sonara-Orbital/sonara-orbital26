@@ -2,21 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import styles from "./page.module.css";
-import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
-import Image from "next/image";
 import React from "react";
 import { HomeSidebar } from "@/components/ui/home-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input";
+import { FieldDescription, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { POST } from "@/app/api/chat/route"
 import { MusicCard } from "@/components/ui/music-card";
+import { ChatCard } from "@/components/ui/text-chat-card";
 
-interface HomeContentProps {
+interface HomeContentProps {    
     userMetadata: any;
     children: React.ReactNode;
 }
@@ -25,14 +22,15 @@ interface Song {
     track_name: string;
     artist_name: string;
     album_name: string;
+    album_image: string;
+}
+
+interface Turn {
+    userInput: string;
+    songs: Song[];
 }
 
 export default function HomeContent({ userMetadata, children }: HomeContentProps) {
-    const supabase = createClient();
-
-    const [collapsedBar, setCollapsedBar] = useState(false);
-    const [collapsedMenu, setCollapsedMenu] = useState(false);
-
     const [profileOpen, setProfileOpen] = useState(false);
     const toggleProfile = () => setProfileOpen(!profileOpen);
 
@@ -40,6 +38,8 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     const [loaded, setLoaded] = useState(false);
     
     const [inputVal, setInputVal] = useState("");
+
+    const [turns, setTurns] = useState<Turn[]>([]);
 
 
     const handleSubmit = async (e: React.SubmitEvent) => {
@@ -73,7 +73,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             });
             const songData = await res.json();
             const outputSongs: Song[] = songData.data;
-            setSongs(outputSongs);
+            setTurns(prev => [...prev, {userInput: inputVal, songs: outputSongs}]);
             console.log(songData.data);
 
             setLoaded(true);
@@ -84,60 +84,26 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
         }
     }
 
-    /*
-    return (
-        <div className={styles.layout}>
-            <aside className={`${styles.sidebar} ${collapsedBar ? styles.collapsedBar : ""}`}>
-                <div className={`${collapsedBar ? styles.buttonContainer : styles.buttonContainerOpen}`}>
-                    <h1 className={collapsedBar ? styles.sidebarTitleClosed : styles.sidebarTitle}>{!collapsedBar && "Sonara"}</h1>
-                    <button className={`${collapsedBar ? styles.collapsedToggle : styles.toggle}`} onClick={() => {
-                            setCollapsedBar(!collapsedBar);
-                            console.log("collapse");
-                            }}>
-                        {collapsedBar ? "☰": "✕"}
-                    </button>
-                </div>
-                <div className={collapsedBar? "" : styles.navContainer}>
-                    <nav className={`${styles.nav} ${ collapsedBar ? styles.navClosed : styles.nav}`}>
-                        <a href="/profile">{collapsedBar ? "⍜" : "Profile"}</a>
-                        <Link href="/profile"><button>{collapsedBar ? "●" : "Placeholder"}</button></Link>
-                        <a href="/profile">{collapsedBar ? "●" : "Placeholder"}</a>
-                    </nav>
-                </div>
-                <div className={styles.userContainer}>
-                <Link href="/profile">
-                    <div className={styles.profilePic}>
-                        <Image src={userMetadata.avatar_url == "" ? null : userMetadata.avatar_url } alt="User Profile Picture" className="object-cover h-9 w-9"/>
-                    </div>
-                </Link>
-                <Link href="/profile">
-                    <h1 className={`${styles.username} ${ collapsedBar ? styles.usernameClosed: ""}`}>{userMetadata.username}</h1>
-                </Link>
-                </div>
-            </aside>
-
-            <main className={styles.main}>
-                <h1>Main Content!</h1>
-            </main>
-        </div>
-    )
-    */
    return (
     <SidebarProvider>
         <HomeSidebar />
         <SidebarInset>
+            <div className="w-full h-10 my-5" />
             <main className="w-full ">
-                <SidebarTrigger className="m-4" />
-                {songs.length === 0 ? <p>nothing inside songs</p> : 
-                songs.map((song, index) => (
-                    <MusicCard key={index}
-                    songName={song.track_name}
-                    artistName={song.artist_name}
-                    albumName={song.album_name}
-                    imageUrl="" />
+                {turns.map((turn, index) => (
+                    <div key={index}>
+                        <ChatCard value={turn.userInput} />
+                        {turn.songs.map((song, i) => (
+                            <MusicCard key={i}
+                            songName={song.track_name}
+                            artistName={song.artist_name}
+                            albumName={song.album_name}
+                            imageUrl={song.album_image} />
+                        ))}
+                    </div>
                 ))}
-                <form onSubmit={handleSubmit}>
-                <div className="w-7/10 text-center mt-60 ml-70">
+                <form className="mb-auto mt-1" onSubmit={handleSubmit}>
+                <div className="w-7/10 text-center mt-60 ml-70 mb-10">
                     <FieldLabel className="pt-5 pb-2"></FieldLabel>
                         <ButtonGroup className="w-full">
                             <InputGroup className="w-6/10">
