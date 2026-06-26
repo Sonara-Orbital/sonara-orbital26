@@ -25,7 +25,8 @@ export async function searchLibrary(query: string) {
       const { data: queriedSongs, error: dbError } = await supabase
         .from("User_saved_songs")
         .select("song_id, title, artist, album_art_url")
-        .eq("user_id", user.id);
+        .or(`title.ilike.%${query}%, artist.ilike.%${query}%`)
+        .limit(10);
     
       if (dbError) {
         console.error("Unable to load library data:", dbError);
