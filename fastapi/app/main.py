@@ -65,30 +65,23 @@ def recommender(song_name: str, artist_name="") -> list[str]:
     for i in indices:
         results.append(song_idxs[i])
     
-    print(results)
+    #print(results)
+    #print("===========================================")
     results.pop(0)
 
     song_results = []
     for id in results:
-        record = supabase.table("Songs").select("track_name, album_name, artist_name").eq("id", id).execute().data[0]
+        record = supabase.table("Songs").select("track_name").eq("id", id).execute().data[0]
         song_name = record["track_name"]
-        song_res = sp.search(q=song_name, limit=1, type='track')
-        items = song_res['tracks']['items']
-        if not items:
-            print("no album image found")
-        track = items[0]
-        album_images = track['album']['images']
-        img = album_images[0]['url']
-        record["album_image"] = img
-
-        song_results.append(record)
+        print(song_name)
+        song_results.append(song_name)
     
-    print(song_results)
+    #print(song_results)
     
     return song_results
 
 
-#print(recommender("drag me down"))
+#print(recommender("radioactive", "Imagine Dragons"))
 
 @app.post("/api/process")
 async def recommend_song(inputData: DataInput):

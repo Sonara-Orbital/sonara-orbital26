@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
@@ -23,11 +24,13 @@ interface Song {
     artist_name: string;
     album_name: string;
     album_image: string;
+    track_preview: string;
 }
 
 interface Turn {
     userInput: string;
-    songs: Song[];
+    songs: Song[] | null;
+    isLoading: boolean;
 }
 
 export default function HomeContent({ userMetadata, children }: HomeContentProps) {
@@ -41,27 +44,38 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
     const [turns, setTurns] = useState<Turn[]>([]);
 
+    async function searchSingleSong(songName: string): Promise<Song> {
+        const response = await fetch("/api/search", {
+            method: "POST",
+            headers: {"Content-Type": "application/json" },
+            body: JSON.stringify({ userInput: songName})
+        });
+
+        if (!response.ok) {
+            throw new Error(`Request Failed ${response.status}`);
+        }
+
+        const data: Song = await response.json();
+        return data;
+    }
+
 
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
         if (!inputVal.trim()) return;
 
         try {
-            const response = await fetch("/api/chat", {
-                method: "POST",
-                headers: {"Content-Type": "application/json" },
-                body: JSON.stringify({ userInput: inputVal })
-            });
+            
+            const newTurn = { userInput: inputVal, songs: null, isLoading: true};
+            setTurns(prev => [...prev, newTurn]);
+            setInputVal("");
+            const turnIndex = turns.length;
 
-            if (!response.ok) {
-                throw new Error("Request Failed");
-            }
-
-            const data = await response.json();
-            const songName = data.songs[0].songName;
-            const artistName = data.songs[0].artistName;
+            const track = await searchSingleSong(inputVal);
+            const songName = track.track_name;
+            const artistName = track.artist_name
+            console.log(songName, artistName);
             console.log("gemini", songName)
-            const inputSong = songName + " " + artistName
 
             const res = await fetch("http://localhost:8000/api/process", {
                 method: "POST",
@@ -71,12 +85,18 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                     artistName
                 })
             });
-            const songData = await res.json();
-            const outputSongs: Song[] = songData.data;
-            setTurns(prev => [...prev, {userInput: inputVal, songs: outputSongs}]);
-            console.log(songData.data);
 
-            setLoaded(true);
+            if (!res.ok) {console.log("not ok")}
+
+            const songData = await res.json();
+            const fetchPromises = await songData.data.map((songNamer: string) => searchSingleSong(songNamer));
+            const results: Song[] = await Promise.all(fetchPromises);
+
+            setTurns(prev => prev.map((turn, i) => 
+                i === turnIndex 
+                ? {...turn, songs: results, isLoading: false}
+                : turn));
+
             setInputVal("");
 
         } catch (e) {
@@ -93,7 +113,8 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
-                        {turn.songs.map((song, i) => (
+                        {turn.isLoading ? <Loader2 className="animate-spin ml-10"/> :
+                        (turn.songs ?? []).map((song, i) => (
                             <MusicCard key={i}
                             songName={song.track_name}
                             artistName={song.artist_name}
