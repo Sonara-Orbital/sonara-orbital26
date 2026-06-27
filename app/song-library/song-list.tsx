@@ -4,7 +4,6 @@ import { addSong } from "@/actions/songs";
 import { ArrowUpDown, ArrowUpNarrowWide, ArrowDownWideNarrow, Trash , Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { GeneratedSong } from "@/types/song";
 import { searchLibrary } from "@/actions/search";
 import { deleteSong } from "@/actions/delete";
 
@@ -69,9 +68,9 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
           });
         }}
       >
-        <button type="submit" className="bg-blue-500 px-4 py-2 text-white rounded-lg">
+        {/* <button type="submit" className="bg-blue-500 px-4 py-2 text-white rounded-lg">
           TEST
-        </button>
+        </button> */}
       </form>
 
       <header className="mb-4">
