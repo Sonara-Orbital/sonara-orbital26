@@ -38,6 +38,28 @@ nn_model = bundle["model"]
 song_idxs = bundle["ids"]
 vectors = bundle["vectors"]
 
+
+# MAIN MATH LOGIC returns array of neighbour song_id's, return limit number of recommendations
+def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) -> list[str]:
+    idx = supabase.table("Song_Vectors").select("embedding").eq("id", song_id)\
+        .not_.in_("id", blackListedSongIds)\
+        .execute().data
+    
+    if not idx:
+        return []
+    
+    vector = np.array(json.loads(idx[0]["embedding"])).reshape(1, -1)
+
+    distances, indices = nn_model.kneighbors(vector, limit + 1)
+
+    distances = distances.flatten()
+    indices = indices.flatten()
+
+    raw_ids = [song_idxs[i] for i in indices if song_idxs[i] != song_id]
+    return raw_ids
+
+
+# MAIN RECOMMENDER FUNCTION 
 def recommender(song_name: str, artist_name="") -> list[str]:
     if (artist_name==""):
         song = supabase.table("Songs").select("id").ilike("track_name", song_name).execute().data
@@ -48,27 +70,14 @@ def recommender(song_name: str, artist_name="") -> list[str]:
         results = ["no song found"]
         return results
     
-    
-    song_id = song[0]
-    idx = supabase.table("Song_Vectors").select("embedding").eq("id", song_id["id"]).execute().data
-    vector = np.array(json.loads(idx[0]["embedding"])).reshape(1, -1)
-
-    distances, indices = nn_model.kneighbors(vector, 6)
-
-    distances = distances.flatten()
-    indices = indices.flatten()
-
+    song_id = song[0]["id"]
     #print(distances)
     #print(indices)
 
-    results = []
-    for i in indices:
-        results.append(song_idxs[i])
+    results = get_raw_neighbours(song_id, 5, [])
     
     #print(results)
     #print("===========================================")
-    results.pop(0)
-
     song_results = []
     for id in results:
         record = supabase.table("Songs").select("track_name").eq("id", id).execute().data[0]
@@ -87,6 +96,55 @@ def recommender(song_name: str, artist_name="") -> list[str]:
 async def recommend_song(inputData: DataInput):
     result = recommender(inputData.songName, inputData.artistName)
     return {"status": "success", "data": result}
+
+# Scroller pool recommndation logic ... returns list of song_id's
+def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackListedSongIds: list[str]) -> list[str]:
+    # 1. Fetch embeddings for all songs
+    records = supabase.table("Song_Vectors").select("id", "embedding")\
+        .not_.in_("id", blackListedSongIds).in_("id", seed_song_ids).execute().data
+    if not records:
+        return []
+    
+    # 2. Put embedding into numpy arrray
+    vectors = [np.array(json.loads(r["embedding"])) for r in records]
+    
+    # 3. Create average vector
+    composite_vector = np.mean(vectors, axis=0).reshape(1, -1)
+
+    # 4. Run knn on average vector
+    distances, indices = nn_model.kneighbors(composite_vector, limit + len(seed_song_ids))
+    indices = indices.flatten()
+
+    # 5. Filter out 5 initial songs from the raw results
+    raw_ids = [song_idxs[i] for i in indices if song_idxs[i] not in seed_song_ids]
+    return raw_ids
+
+
+### SCROLLER RECOMMENDER recommends songs excluding seen and library songs, return list of song_id's
+def scroller_recommender(user_id: str) -> list[str]:
+    blackListResponse = supabase.table("Users").select("seen_songs").execute().data
+    blackListedSongIds = blackListResponse[0]["seen_songs"] if blackListResponse else []
+    # Get last 5 added songs
+    songResponse = supabase.table("User_saved_songs").select("song_id")\
+        .eq("user_id", user_id).order("created_at", descending=True).limit(5).execute().data
+    last_five_ids = [row["song_id"] for row in songResponse]
+    print(last_five_ids)
+
+    ## OPTION 1 GET ALL CANDIDATES AND RANDOMLY SELECT ##
+    # song_candidates =[]
+    # # Get neighbours of each of the 5 songs
+    # for song_id in last_five_ids:
+    #     song_candidates.exrend(get_raw_neighbours(song_id, 5))
+
+    ## OPTION 2 GENERATE AVERAGE VECTOR ## 
+    raw_ids = get_raw_neighbours_from_pool(last_five_ids, 5, blackListedSongIds)
+    return raw_ids
+
+@app.post("/api/scroller-pool")
+async def recommend_song_scroller(user_id: str):
+    result = scroller_recommender(user_id)
+    return {"status": "success", "data": result}
+
 
 if __name__ == "__main__":
     import uvicorn

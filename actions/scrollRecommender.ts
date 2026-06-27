@@ -9,7 +9,7 @@ import { SimpleSong } from "@/types/song";
 import { redirect } from "next/navigation";
 
 // No input, output array of SimpleSongs that is the next batch
-export function ScrollRecommender() {
+export async function ScrollRecommender() {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
@@ -32,19 +32,30 @@ export function ScrollRecommender() {
     const seenIds = userSeenSongs?.map(song => song.song_id);
     const libraryIds = userLibrary?.map(song => song.song_id);
 
-    const excludeIds = [seenIds..., libraryIds...];
+    const excludeIds = [...seenIds || [], ...libraryIds || []];  // song_id's that shouldn't be recommended again
 
-    // Get all user library songs except seen
-
-
-    const recommenderRes = fetch("http://localhost:8000/api/process", {
-        method: "POST",
-        headers: {"Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            .song_id,
-            .artist
-        })
-    });
-    const nextSongBatch = await recommenderRes.json();
-    const outputSongs: Song[] = nextSongBatch.data;
+    // Future speed improvement: modify recommender function to perform recommendation on song list without excluded id's
+    try {
+        const recommenderRes = await fetch("http://localhost:8000/api/scroller-pool", {
+            method: "POST",
+            headers: {"Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                user_id: user.id
+            })
+        });
+        if (!recommenderRes.ok) {
+            console.error(" Error fetching result")
+        }
+        const nextSongBatch = await recommenderRes.json();
+        
+        if (nextSongBatch.status == "success") {
+            const nextSongIds = nextSongBatch.data
+            console.log("recommended songs: .....", nextSongIds)
+            return nextSongIds;
+        } else {
+            console.error("BACKEND LOGIC ERROR");
+        }
+    } catch (error) {
+        console.error("Failed to fetch results from backend");
+    }
 }
