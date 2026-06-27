@@ -22,10 +22,9 @@ export default async function UserProfile({ children }: {children: React.ReactNo
     
     const { data: userProfile, error: dbError } = await supabase
     .from('Users')
-    .select('id, username, display_name, avatar_url, created_at')
+    .select('id, username, name, avatar_url, created_at')
     .eq('id', userId)
     .single();
-
 
     if (dbError || !userProfile) {
         return <p>Profile not found</p>;
