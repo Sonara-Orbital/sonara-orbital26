@@ -10,12 +10,18 @@ import React, { useState } from "react";
 import "swiper/css";
 import "swiper/css/virtual";
 
-// Input SimpleSong array - (song_id, title, artist)
 export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleSong[] }) {
     const [seenSongs, setSongs] = useState<SimpleSong[]>(currentSongs);
     const [isLoading, setIsLoading] = useState(false);
 
+    React.useEffect(() => {
+        if (currentSongs && currentSongs.length > 0) {
+            setSongs(currentSongs);
+        }
+    }, [currentSongs]);
+
     const handleSwipeNext = async (swiperInstance: any) => {
+        console.log("YOUR SEEN SONGS ARE seenSongs");
         const currIndex = swiperInstance.activeIndex;
          
         if (currIndex == seenSongs.length - 2 && !isLoading) {
@@ -33,12 +39,12 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         }
     }
 
-    return <main>
+    return <main className="text-center">
         <Swiper
         modules={[Virtual, Mousewheel]}
         direction="vertical"
         className="w-full h-full"
-        slidesPerView={2}
+        slidesPerView={1}
         mousewheel={true}
         
         virtual={{
@@ -48,13 +54,13 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         }}
 
         onSlideChange={(swiper) => {
-            const currIndex = swiper.activeIndex;
-            handleSwipeNext(currIndex);
+            // const currIndex = swiper.activeIndex;
+            handleSwipeNext(swiper);
         }}
         >
-            {currentSongs.map((song, index) =>
+            {seenSongs.map((song, index) =>
                 <SwiperSlide key={song.song_id} virtualIndex={index}>    
-                    <div>
+                    <div className="bg-red-300">
                         <h2>{song.title}</h2>
                         <p>{song.artist}</p>
                         <span>Card Index: {index}</span>

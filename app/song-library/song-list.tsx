@@ -107,7 +107,7 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
               className="group relative aspect-square overflow-hidden rounded-xl border border-black shadow-lg duration-400 hover:scale-[1.02] hover:shadow-2xl"
             >
               {song.album_art_url ? (
-                <img
+                <img  
                   src={song.album_art_url}
                   alt={`${song.title} cover`}
                   className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
