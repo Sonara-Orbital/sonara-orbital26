@@ -121,10 +121,10 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         >
             <SwiperUpDown />
             {sessionSeenSongs.map((song, index) =>
-                <SwiperSlide key={song.song_id} className="w-full h-full flex items-center justify center">    
-                    <div className="bg-red-200 flex flex-col font-mono">
+                <SwiperSlide key={song.song_id} className="bg-red-100 z-20 w-full h-full flex items-center justify center">    
+                    <div className="bg-red-200 flex flex-col">
                         <span className="m-20">
-                            <h2 className="font-medium text-4xl mt-4 mb-8">{song.title}</h2>
+                            <h2 className="font-medium text-7xl mt-4 mb-8">{song.title}</h2>
                             <p className="text-lg mb-8">{song.artist}</p>
                             <span className="text-sm absolute -translate-x-8 bottom-4 text-center ">Card Index: {index}</span>
                         </span>

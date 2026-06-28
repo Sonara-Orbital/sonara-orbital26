@@ -26,8 +26,12 @@ class DataInput(BaseModel):
     songName: str
     artistName: str
 
-auth_manager = SpotifyClientCredentials()
-sp = spotipy.Spotify(auth_manager=auth_manager)
+try:
+    auth_manager = SpotifyClientCredentials()
+    sp = spotipy.Spotify(auth_manager=auth_manager)
+except Exception as exc:
+    sp = None
+    print(f"Skipped spotify client: {exc}")
 
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -88,8 +92,6 @@ def recommender(song_name: str, artist_name="") -> list[str]:
     #print(song_results)
     
     return song_results
-
-
 #print(recommender("radioactive", "Imagine Dragons"))
 
 @app.post("/api/process")
@@ -97,12 +99,21 @@ async def recommend_song(inputData: DataInput):
     result = recommender(inputData.songName, inputData.artistName)
     return {"status": "success", "data": result}
 
+
+
+
+
+
+
+
+
 # Scroller pool recommndation logic ... returns list of song_id's
 def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackListedSongIds: list[str]) -> list[str]:
-    # 1. Fetch embeddings for all songs
+    # 1. Get embeddings for the input pool of songs
     records = supabase.table("Song_Vectors").select("id", "embedding")\
         .not_.in_("id", blackListedSongIds).in_("id", seed_song_ids).execute().data
     if not records:
+        print("NOT RECORDS")
         return []
     
     # 2. Put embedding into numpy arrray
@@ -117,18 +128,26 @@ def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackList
 
     # 5. Filter out 5 initial songs from the raw results
     raw_ids = [song_idxs[i] for i in indices if song_idxs[i] not in seed_song_ids]
-    return raw_ids
+    print("RAW", raw_ids)
+    return raw_ids[:limit]
 
 
-### SCROLLER RECOMMENDER recommends songs excluding seen and library songs, return list of song_id's
-def scroller_recommender(user_id: str) -> list[str]:
-    blackListResponse = supabase.table("Users").select("seen_songs").execute().data
-    blackListedSongIds = blackListResponse[0]["seen_songs"] if blackListResponse else []
+class SimpleSong(BaseModel):
+    song_id: str
+    title: str
+    artist: str
+
+### SCROLLER RECOMMENDER recommends songs excluding seen and library songs, return list of SimplsSong's
+def scroller_recommender(user_id: str, blackListIds: list[str]) -> list[SimpleSong]:
     # Get last 5 added songs
     songResponse = supabase.table("User_saved_songs").select("song_id")\
-        .eq("user_id", user_id).order("created_at", descending=True).limit(5).execute().data
+        .eq("user_id", user_id).order("created_at", desc=True).limit(5).execute().data
     last_five_ids = [row["song_id"] for row in songResponse]
-    print(last_five_ids)
+    print(last_five_ids, "LAST FIVE")
+
+    seed_id_set = set(last_five_ids)
+    blackListedSongIds = [song_id for song_id in (blackListIds or []) if song_id not in seed_id_set]
+    print("BLACKLIST_EXCLUDING_SEEDS", blackListedSongIds)
 
     ## OPTION 1 GET ALL CANDIDATES AND RANDOMLY SELECT ##
     # song_candidates =[]
@@ -137,12 +156,31 @@ def scroller_recommender(user_id: str) -> list[str]:
     #     song_candidates.exrend(get_raw_neighbours(song_id, 5))
 
     ## OPTION 2 GENERATE AVERAGE VECTOR ## 
-    raw_ids = get_raw_neighbours_from_pool(last_five_ids, 5, blackListedSongIds)
-    return raw_ids
+    # Query 30 neighbours, filter those in blacklist
+    raw_ids = get_raw_neighbours_from_pool(last_five_ids, 30, blackListedSongIds)
+    resData = supabase.table("Songs").select("id", "track_name", "artist_name")\
+        .in_("id", raw_ids).not_.in_("id", blackListedSongIds)\
+        .execute().data
+    
+    # Format and choose the 5 most accurate
+    formatted_res = [
+        {
+            "song_id": generated_song["id"],
+            "title": generated_song["track_name"],
+            "artist": generated_song["artist_name"]
+        } for generated_song in resData[:5]
+    ]
+    return formatted_res
+
+class scrollerInput(BaseModel):
+    user_id: str
+    blackListIds: list[str]
 
 @app.post("/api/scroller-pool")
-async def recommend_song_scroller(user_id: str):
-    result = scroller_recommender(user_id)
+async def recommend_song_scroller(inputData: scrollerInput):
+    result = scroller_recommender(inputData.user_id, inputData.blackListIds)
+    print("INPUT", inputData.user_id)
+    print("RESULT", result)
     return {"status": "success", "data": result}
 
 

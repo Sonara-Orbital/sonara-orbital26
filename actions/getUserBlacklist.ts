@@ -2,8 +2,6 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 
 export async function getUserBlacklist() {
     const cookieStore = await cookies();
@@ -12,19 +10,18 @@ export async function getUserBlacklist() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      redirect("/login")
+        return [];
     }
-    
-    const {data: allSeenSongs, error} = await supabase.from("Users")
-        .select("seen_songs")
-        .eq("id", user.id)
-        .single();
-        
+
+    const { data, error } = await supabase
+        .from("user_seen_history")
+        .select("song_id")
+        .eq("user_id", user.id);
+
     if (error) {
-        console.error("Error fetching initial songs from db");
-        return;
+        console.error("Error fetching initial songs from db", error);
+        return [];
     }
-    
-    const res = allSeenSongs?.seen_songs ?? [];
-    return res;
+
+    return (data ?? []).map((row) => row.song_id);
 }

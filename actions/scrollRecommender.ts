@@ -9,7 +9,7 @@ import { SimpleSong } from "@/types/song";
 import { redirect } from "next/navigation";
 
 // No input, output array of SimpleSongs that is the next batch
-export async function ScrollRecommender(blackListIds: string[]) {
+export async function ScrollRecommender(blackListIds: string[], seedSongIds: string[] = []) {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
@@ -29,10 +29,10 @@ export async function ScrollRecommender(blackListIds: string[]) {
         .select("song_id")
         .eq("user_id", user.id);
     
-    const seenIds = userSeenSongs?.map(song => song.song_id) ?? [];
-    const libraryIds = userLibrary?.map(song => song.song_id) ?? [];
+    const seenIds = userSeenSongs?.map(song => song.song_id);
+    const libraryIds = userLibrary?.map(song => song.song_id);
 
-    const excludeIds = [...new Set([...seenIds, ...libraryIds, ...(blackListIds ?? [])])];  // song_id's that shouldn't be recommended again
+    const excludeIds = [...seenIds || [], ...libraryIds || []];  // song_id's that shouldn't be recommended again
 
     // Future speed improvement: modify recommender function to perform recommendation on song list without excluded id's
     try {
@@ -41,7 +41,8 @@ export async function ScrollRecommender(blackListIds: string[]) {
             headers: {"Content-Type": "application/json" },
             body: JSON.stringify({ 
                 user_id: user.id,
-                blackListIds: excludeIds
+                blackListIds: excludeIds,
+                seedSongIds: seedSongIds
             })
         });
         
@@ -56,13 +57,13 @@ export async function ScrollRecommender(blackListIds: string[]) {
         // Return res
         if (nextSongBatch.status == "success") {
             console.log("recommended songs: .....", nextSongBatch);
-            return { success: true, data: nextSongBatch.data ?? [] };
+            return nextSongBatch;
         } else {
             console.error("BACKEND LOGIC ERROR");
-            return { success: false, error: "Backend logic error", data: []};
+            return { sucess: false, error: "Backend logic error"};
         }
     } catch (error) {
-        console.error("Failed to fetch results from backend", error);
-        return { success: false, error: "Failed to fetch", data: []};
+        console.error("Failed to fetch results from backend");
+        return { sucess: false, error: "Failed to fetch"};
     }
 }
