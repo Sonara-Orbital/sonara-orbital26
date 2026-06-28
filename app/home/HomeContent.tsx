@@ -184,7 +184,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                 <InputGroupInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} className="w-full" placeholder="Piano Man by Billy Joel..." />
                             </InputGroup>
                             <ButtonGroup>
-                                <Button type="submit">Go</Button>
+                                <Button type="submit" className="hover:bg-gray-200/70">Go</Button>
                             </ButtonGroup>
                         </ButtonGroup>
                         <FieldDescription className="pl-1 pt-2">Enter the song and or artist you want to search for</FieldDescription>
