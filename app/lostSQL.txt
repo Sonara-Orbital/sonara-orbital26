@@ -1,0 +1,74 @@
+SUPABASE SQL
+
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+insert into public."Users" (id, username, email) -- 1. Added email column here
+values (
+new.id, 
+new.raw_user_meta_data->>'username',
+new.email -- 2. Added the core auth email here!
+);
+return new;
+end;
+$$ language plpgsql security definer;
+
+-- Re-apply the trigger
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute procedure public.handle_new_user();
+
+
+
+ALTER TABLE "User_saved_songs" ALTER COLUMN user_id DROP DEFAULT;
+
+
+
+DROP POLICY IF EXISTS "Allow users to insert their own songs" ON "User_saved_songs";
+
+-- Create insert policy
+CREATE POLICY "Allow users to insert their own songs" 
+ON "User_saved_songs" 
+FOR INSERT 
+TO authenticated 
+WITH CHECK (auth.uid() = user_id);
+
+
+
+
+
+
+
+TABLE
+
+id uuid gen_random_uuid()
+
+
+user_id uuidN ULL
+
+
+
+
+song_id text NULL
+
+title text NULL
+
+artist text NULL
+
+duration text NULL
+
+bpm int2 NULL
+
+genre text NULL
+
+prompt
+
+album_arta_url
+
+created_at
+
+
+
+
+DELETE, SELECT, INSERT rls policies

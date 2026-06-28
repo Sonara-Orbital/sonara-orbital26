@@ -16,8 +16,8 @@ import {
 // Menu items.
 const items = [
   { title: "Home", url: "/home", icon: Home},
-  { title: "Song Discovery", url: "#", icon: Search},
-  { title: "My Library", url: "#", icon: Inbox},
+  { title: "Song Discovery", url: "/song-discovery", icon: Search},
+  { title: "My Library", url: "/song-library", icon: Inbox},
 ]
 
 export function HomeSidebar() {

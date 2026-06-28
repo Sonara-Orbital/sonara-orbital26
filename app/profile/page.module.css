@@ -54,9 +54,9 @@
 }
 
 .userName {
-    font-family: 'Inter' serif;
+    font-family: sans-serif;
     text-transform: uppercase;
-    color: #3b5ccc;
+    color: #334155;
     font-size: 2rem;
 }
 

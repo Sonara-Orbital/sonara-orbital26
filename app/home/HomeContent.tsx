@@ -13,6 +13,7 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { POST } from "@/app/api/chat/route"
 import { MusicCard } from "@/components/ui/music-card";
 import { ChatCard } from "@/components/ui/text-chat-card";
+import { addSong, addSongFromTitleArtist } from "@/actions/songs";
 
 interface HomeContentProps {    
     userMetadata: any;
@@ -100,7 +101,26 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             setInputVal("");
 
         } catch (e) {
-            console.error(e)
+            console.error("Error fetching here!!! ", e)
+        }
+    }
+
+    // Js object stores key songkey and value boolean
+    const [edgeCaseErrors, setEdgeCaseErrors] = useState<{[key: string]: boolean}>({});
+    const [addedSongs, setAddedSongs] = useState<{[key: string]: boolean}>({});
+    const [alreadyAdded, setAlreadyAdded] = useState<{[key: string]: boolean}>({});
+    
+    const handleAdd = async (song: Song) => {
+        const songKey = `${song.track_name}-${song.artist_name}`;
+        const {success, error: e} = await addSongFromTitleArtist(song.track_name, song.artist_name);
+        console.log("THE ERROR IS", e, success);
+        if (e == "Song already in library") {
+            setAlreadyAdded(prev => ({...prev, [songKey]: true}));
+        }
+        else if (e) {
+            setEdgeCaseErrors(prev => ({...prev, [songKey]: true}));
+        } else {
+            setAddedSongs(prev => ({...prev, [songKey]: true}));
         }
     }
 
@@ -114,13 +134,46 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
                         {turn.isLoading ? <Loader2 className="animate-spin ml-10"/> :
-                        (turn.songs ?? []).map((song, i) => (
-                            <MusicCard key={i}
-                            songName={song.track_name}
-                            artistName={song.artist_name}
-                            albumName={song.album_name}
-                            imageUrl={song.album_image} />
-                        ))}
+                        (turn.songs ?? []).map((song, i) => {
+                            const songKey = `${song.track_name}-${song.artist_name}`;
+                            const thisSongError = !!edgeCaseErrors[songKey];
+                            const thisSongAdded = !!addedSongs[songKey];
+                            const thisSongAlreadyAdded = !!alreadyAdded[songKey];
+
+                            return <React.Fragment key={i}>
+                                      <form className="relative"
+                                        action={async () => {
+                                            console.log("clicked");
+                                            handleAdd(song);
+                                        }}
+                                      >
+                                        <button type="submit" className="hover:bg-gray-200/70 font-sm px-4 py-2 text-black border border-black rounded-sm absolute left-140 top-6">
+                                        {thisSongAlreadyAdded
+                                        ? <span>"Song already in library</span>
+                                        : thisSongError
+                                            ? <span className="font-semibold text-red-500">
+                                                "Edge case song... cannot be added to library"
+                                            </span>
+                                            : thisSongAdded 
+                                                ? <span>
+                                                    Song successfully added!
+                                                </span>
+                                                : <span>
+                                                    + add {song.track_name} to library
+                                                </span>
+                                            
+                                        }
+                                        </button>
+                                      </form>
+                                <MusicCard
+                                songName={song.track_name}
+                                artistName={song.artist_name}
+                                albumName={song.album_name}
+                                imageUrl={song.album_image} 
+                                />
+                            </React.Fragment>
+                        }
+                        )}
                     </div>
                 ))}
                 <form className="mb-auto mt-1" onSubmit={handleSubmit}>
@@ -131,7 +184,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                 <InputGroupInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} className="w-full" placeholder="Piano Man by Billy Joel..." />
                             </InputGroup>
                             <ButtonGroup>
-                                <Button type="submit">Go</Button>
+                                <Button type="submit" className="hover:bg-gray-200/70">Go</Button>
                             </ButtonGroup>
                         </ButtonGroup>
                         <FieldDescription className="pl-1 pt-2">Enter the song and or artist you want to search for</FieldDescription>
