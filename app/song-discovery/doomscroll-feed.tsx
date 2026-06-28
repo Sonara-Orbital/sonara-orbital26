@@ -125,7 +125,13 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         {sessionSeenSongs.map((song, index) => (
             <SwiperSlide key={song.song_id} className=" w-full h-full flex items-center justify-center">    
                 <button className="bg-blue-200 rounded rounded-md p-3 right-4 absolute"
-                    onClick={() => {addSongFromId(song.song_id)}}
+                    onClick={async () => {
+                        const {success} = await addSongFromId(song.song_id); 
+                        console.log("adding");
+                        if (!success) {
+                            console.log("CANT ADD");
+                        }
+                    }}
                 >
                 + Add to library
                 </button>

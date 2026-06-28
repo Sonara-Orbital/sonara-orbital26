@@ -32,9 +32,9 @@ export async function addSong(song: GeneratedSong) {
 
          if (checkError) {
             console.error("Unable to access database");
-            return { sucess: false, error: "Unable to access database" };
+            return { success: false, error: "Unable to access database" };
          } else if (checkSong) {
-            return { sucess: true};
+            return { success: true};
          }
 
         // Add song to library
@@ -43,7 +43,7 @@ export async function addSong(song: GeneratedSong) {
             .from("User_saved_songs")
             .insert({
                 user_id: currUser.id,
-                id: song.id,
+                song_id: song.id,
                 title: song.title,
                 artist: song.artist,
                 duration: song.duration,
@@ -67,7 +67,7 @@ export async function addSong(song: GeneratedSong) {
     } catch (error) {
         console.error("Other error")
         return { 
-            sucess: false,
+            success: false,
             error: "Other error"
         };
     }
@@ -95,7 +95,7 @@ export async function addSongFromId(song_id: string) {
     if (error) {
         console.error(("db error"));
         return { 
-            sucess: false,
+            success: false,
             error: "db error"
         };
     }
@@ -103,7 +103,7 @@ export async function addSongFromId(song_id: string) {
     const song = songData[0];
 
     const songAdding: GeneratedSong = {
-                song_id: song_id,
+                id: song_id,
                 title: song.track_name,
                 artist: song.artist_name,
                 duration: song.duration_ms,
@@ -119,7 +119,7 @@ export async function addSongFromId(song_id: string) {
     } catch (error) {
         console.error("Other error")
         return { 
-            sucess: false,
+            success: false,
             error: "Other error"
         };
     }
@@ -195,7 +195,7 @@ export async function addSongFromTitleArtist(uncleanTitle: string, uncleanArtist
             
             if (fallbackError) {
                 console.error("SONG CANT BE FOUNDDD final");
-                return { sucess: false, error: "SONG CANT BE FOUNDDD"};
+                return { success: false, error: "SONG CANT BE FOUNDDD"};
             }
             song = fallbackSong
             
