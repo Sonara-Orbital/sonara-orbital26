@@ -43,7 +43,7 @@ export async function addSong(song: GeneratedSong) {
             .from("User_saved_songs")
             .insert({
                 user_id: currUser.id,
-                song_id: song.id,
+                id: song.id,
                 title: song.title,
                 artist: song.artist,
                 duration: song.duration,
@@ -64,6 +64,58 @@ export async function addSong(song: GeneratedSong) {
         revalidatePath("/song-library");
 
         return { success: true };
+    } catch (error) {
+        console.error("Other error")
+        return { 
+            sucess: false,
+            error: "Other error"
+        };
+    }
+}
+
+export async function addSongFromId(song_id: string) {
+    try {
+        const cookieStore = await cookies()
+        const supabase: SupabaseClient = createClient(cookieStore);
+
+        const { data: { user: currUser }, error: authError } = await supabase.auth.getUser();
+         
+        // User not found, return  error object
+        if (authError || !currUser) {
+            return {
+                success: false,
+                error: "Invalid user, error adding songs"
+            };
+        }
+
+    const { data: songData, error } = await supabase.from("Songs")
+        .select("track_name, artist_name, duration_ms, tempo")
+        .eq("id", song_id);
+
+    if (error) {
+        console.error(("db error"));
+        return { 
+            sucess: false,
+            error: "db error"
+        };
+    }
+
+    const song = songData[0];
+
+    const songAdding: GeneratedSong = {
+                song_id: song_id,
+                title: song.track_name,
+                artist: song.artist_name,
+                duration: song.duration_ms,
+                bpm: null,
+                genre: null, 
+                prompt: null, 
+                album_art_url: null
+            };
+    addSong(songAdding)
+    
+    return { success: true };        
+
     } catch (error) {
         console.error("Other error")
         return { 

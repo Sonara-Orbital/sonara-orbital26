@@ -1,6 +1,7 @@
 "use client";
 import { SimpleSong } from "@/types/song";
 import { ScrollRecommender } from "@/actions/scrollRecommender";
+import { addSong, addSongFromId } from "@/actions/songs";
 
 // scroller libraries
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -119,18 +120,24 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
             handleSwipeNext(swiper);
         }}
         >
-            <SwiperUpDown />
-            {sessionSeenSongs.map((song, index) =>
-                <SwiperSlide key={song.song_id} className=" w-full h-full flex items-center justify center">    
-                    <div className="bg-red-200 flex flex-col">
-                        <span className="m-20">
-                            <h2 className="font-medium text-7xl mt-4 mb-8">{song.title}</h2>
-                            <p className="text-lg mb-8">{song.artist}</p>
-                            <span className="text-sm absolute -translate-x-8 bottom-4 text-center ">Card Index: {index}</span>
-                        </span>
-                    </div>
-                </SwiperSlide>
-            )}
+        <SwiperUpDown />
+        
+        {sessionSeenSongs.map((song, index) => (
+            <SwiperSlide key={song.song_id} className=" w-full h-full flex items-center justify-center">    
+                <button className="bg-blue-200 rounded rounded-md p-3 right-4 absolute"
+                    onClick={() => {addSongFromId(song.song_id)}}
+                >
+                + Add to library
+                </button>
+                <div className="flex flex-col mt-14 rounded rounded-lg bg-blue-100/80 z-20">
+                    <span className="m-20 text-stone-900">
+                        <h2 className="font-medium text-5xl mt-4 mb-8">{song.title}</h2>
+                        <p className="text-lg mb-8">{song.artist}</p>
+                        <span className="text-sm absolute -translate-x-8 bottom-4 text-center ">Card Index: {index}</span>
+                    </span>
+                </div>
+            </SwiperSlide> )
+        )}
 
         {/* Loading */}
         {isLoading && (

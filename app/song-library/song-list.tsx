@@ -8,7 +8,7 @@ import { searchLibrary } from "@/actions/search";
 import { deleteSong } from "@/actions/delete";
 
 export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
-  const [isAscending, setIsAscending] = useState(true);
+  const [isAscending, setIsAscending] = useState(false);
 
   // Search bar for library
   const [query, setQuery] = useState("");
