@@ -147,6 +147,7 @@ def scroller_recommender(user_id: str, blackListIds: list[str]) -> list[SimpleSo
 
     seed_id_set = set(last_five_ids)
     blackListedSongIds = [song_id for song_id in (blackListIds or []) if song_id not in seed_id_set]
+    blackListedSongIds = list(dict.fromkeys(blackListedSongIds))
     print("BLACKLIST_EXCLUDING_SEEDS", blackListedSongIds)
 
     ## OPTION 1 GET ALL CANDIDATES AND RANDOMLY SELECT ##

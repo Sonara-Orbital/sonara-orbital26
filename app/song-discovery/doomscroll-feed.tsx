@@ -47,7 +47,7 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         }
             
         const persistBlacklist = () => {
-            void saveUserBlacklist(excludedIdsRef.current);
+            saveUserBlacklist(excludedIdsRef.current);
         };
 
         window.addEventListener("beforeunload", persistBlacklist);
@@ -57,7 +57,7 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
             }
         });
 
-        void fetchInitialSongs();
+        fetchInitialSongs();
 
         return () => {
             window.removeEventListener("beforeunload", persistBlacklist);
@@ -121,7 +121,7 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         >
             <SwiperUpDown />
             {sessionSeenSongs.map((song, index) =>
-                <SwiperSlide key={song.song_id} className="bg-red-100 z-20 w-full h-full flex items-center justify center">    
+                <SwiperSlide key={song.song_id} className=" w-full h-full flex items-center justify center">    
                     <div className="bg-red-200 flex flex-col">
                         <span className="m-20">
                             <h2 className="font-medium text-7xl mt-4 mb-8">{song.title}</h2>

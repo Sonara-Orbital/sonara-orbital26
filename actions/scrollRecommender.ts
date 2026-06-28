@@ -9,7 +9,7 @@ import { SimpleSong } from "@/types/song";
 import { redirect } from "next/navigation";
 
 // No input, output array of SimpleSongs that is the next batch
-export async function ScrollRecommender(blackListIds: string[], seedSongIds: string[] = []) {
+export async function ScrollRecommender(blackListIds: string[]) {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
@@ -29,10 +29,10 @@ export async function ScrollRecommender(blackListIds: string[], seedSongIds: str
         .select("song_id")
         .eq("user_id", user.id);
     
-    const seenIds = userSeenSongs?.map(song => song.song_id);
-    const libraryIds = userLibrary?.map(song => song.song_id);
+    const seenIds = userSeenSongs?.map(song => song.song_id) ?? [];
+    const libraryIds = userLibrary?.map(song => song.song_id) ?? [];
 
-    const excludeIds = [...seenIds || [], ...libraryIds || []];  // song_id's that shouldn't be recommended again
+    const excludeIds = [...new Set([...(blackListIds ?? []), ...seenIds, ...libraryIds])];
 
     // Future speed improvement: modify recommender function to perform recommendation on song list without excluded id's
     try {
@@ -41,8 +41,7 @@ export async function ScrollRecommender(blackListIds: string[], seedSongIds: str
             headers: {"Content-Type": "application/json" },
             body: JSON.stringify({ 
                 user_id: user.id,
-                blackListIds: excludeIds,
-                seedSongIds: seedSongIds
+                blackListIds: excludeIds
             })
         });
         
