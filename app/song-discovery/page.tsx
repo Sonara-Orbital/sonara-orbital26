@@ -32,14 +32,14 @@ export default async function SongDiscoveryPage() {
 
     console.log("RECENT SONGS", recentSongs);
 
-    return <main className="flex flex-col items-center">
+    return <main className="flex min-h-screen flex-col items-center">
         {/* BACK BUTTON */}
         <Link href="/home" className="hover:text-blue-500 top-4 left-4 absolute">  
             &lt; <span className="hover:underline"> back </span>
         </Link>
 
         {/* SCROLLER */}
-        <div className="text-center max-w-md bg-blue-100">
+        <div className="mt-8 h-[85vh] w-full max-w-2xl rounded-2xl bg-blue-100 p-4 shadow-inner">
             <DoomscrollFeed currentSongs={recentSongs || []}></DoomscrollFeed>
         </div>
         

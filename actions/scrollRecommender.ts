@@ -1,7 +1,7 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server"; // Adjust this path to match your Supabase server client helper
-import { GeneratedSong } from "@/types/song"; // Adjust this path to match your interface file
+import { createClient } from "@/utils/supabase/server"; 
+
 import { revalidatePath } from "next/cache";
 import { cookies } from  "next/headers"
 import { SupabaseClient } from "@supabase/supabase-js";
@@ -9,7 +9,7 @@ import { SimpleSong } from "@/types/song";
 import { redirect } from "next/navigation";
 
 // No input, output array of SimpleSongs that is the next batch
-export async function ScrollRecommender() {
+export async function ScrollRecommender(blackListIds: string[]) {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
@@ -29,10 +29,10 @@ export async function ScrollRecommender() {
         .select("song_id")
         .eq("user_id", user.id);
     
-    const seenIds = userSeenSongs?.map(song => song.song_id);
-    const libraryIds = userLibrary?.map(song => song.song_id);
+    const seenIds = userSeenSongs?.map(song => song.song_id) ?? [];
+    const libraryIds = userLibrary?.map(song => song.song_id) ?? [];
 
-    const excludeIds = [...seenIds || [], ...libraryIds || []];  // song_id's that shouldn't be recommended again
+    const excludeIds = [...new Set([...seenIds, ...libraryIds, ...(blackListIds ?? [])])];  // song_id's that shouldn't be recommended again
 
     // Future speed improvement: modify recommender function to perform recommendation on song list without excluded id's
     try {
@@ -40,22 +40,29 @@ export async function ScrollRecommender() {
             method: "POST",
             headers: {"Content-Type": "application/json" },
             body: JSON.stringify({ 
-                user_id: user.id
+                user_id: user.id,
+                blackListIds: excludeIds
             })
         });
+        
         if (!recommenderRes.ok) {
-            console.error(" Error fetching result")
+            console.error(" Error fetching result");
+            return { sucess: false, error: "Error fetching result"};
         }
+
+        // nextSongBatch is an array of SimpleSongs's
         const nextSongBatch = await recommenderRes.json();
         
+        // Return res
         if (nextSongBatch.status == "success") {
-            const nextSongIds = nextSongBatch.data
-            console.log("recommended songs: .....", nextSongIds)
-            return nextSongIds;
+            console.log("recommended songs: .....", nextSongBatch);
+            return { success: true, data: nextSongBatch.data ?? [] };
         } else {
             console.error("BACKEND LOGIC ERROR");
+            return { success: false, error: "Backend logic error", data: []};
         }
     } catch (error) {
-        console.error("Failed to fetch results from backend");
+        console.error("Failed to fetch results from backend", error);
+        return { success: false, error: "Failed to fetch", data: []};
     }
 }
