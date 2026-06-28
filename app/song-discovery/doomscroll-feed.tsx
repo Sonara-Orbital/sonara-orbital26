@@ -22,6 +22,8 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
     const [isLoading, setIsLoading] = useState(true);
     const [allUserSeenSongIds, setAllUserSeenSongIds] = useState<string[]>([])
     const excludedIdsRef = React.useRef<string[]>([]);
+
+    const [alreadyAdded, setAlreadyAdded] = useState<{[key: string]: boolean}>({});
     
     // Query first batch of songs on page load
     // Retrieve user's seen songs, update during session, send back to db after session ends
@@ -124,16 +126,21 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         
         {sessionSeenSongs.map((song, index) => (
             <SwiperSlide key={song.song_id} className=" w-full h-full flex items-center justify-center">    
-                <button className="bg-blue-200 rounded rounded-md p-3 right-4 absolute"
+                <button className="bg-blue-500/30 rounded rounded-md p-3 right-4 absolute hover:bg-blue-500/70"
                     onClick={async () => {
                         const {success} = await addSongFromId(song.song_id); 
                         console.log("adding");
+                        const songKey = `${song.title}-${song.artist}`;
+                        setAlreadyAdded(prev => ({...prev, [songKey]: true}));
                         if (!success) {
                             console.log("CANT ADD");
                         }
                     }}
                 >
-                + Add to library
+                {alreadyAdded[`${song.title}-${song.artist}`] 
+                    ? "Song added!"
+                    : "+ Add to library"
+                }
                 </button>
                 <div className="flex flex-col mt-14 rounded rounded-lg bg-blue-100/80 z-20">
                     <span className="m-20 text-stone-900">
