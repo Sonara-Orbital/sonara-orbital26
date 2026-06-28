@@ -119,13 +119,13 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
               )}
 
               <div className="absolute inset-x-0 bottom-0 p-4 pt-12 flex flex-col justify-end">
-                <h3 className="text-black font-semibold text-base tracking-wide truncate mb-0.5 transition-colors">
+                <h3 className="text-black font-semibold text-base truncate mb-0.5 transition-colors">
                   {song.title}
                 </h3>
-                <div className="flex items-center gap-1.5 text-xs text-neutral-300">
+                <div className="flex items-center gap-1.5 text-xs text-black/50">
                   <span className="truncate font-medium">{song.artist}</span>
                   <span className="text-neutral-500">•</span>
-                  <span className="text-neutral-400 shrink-0">{song.genre}</span>
+                  <span className="text-gray-500 shrink-0">{song.genre}</span>
                 </div>
               </div>
                 {/* delete button */}

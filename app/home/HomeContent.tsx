@@ -147,7 +147,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                             handleAdd(song);
                                         }}
                                       >
-                                        <button type="submit" className="font-sm px-4 py-2 text-black border border-black rounded-sm absolute left-140 top-6">
+                                        <button type="submit" className="hover:bg-gray-200/70 font-sm px-4 py-2 text-black border border-black rounded-sm absolute left-140 top-6">
                                         {thisSongAlreadyAdded
                                         ? <span>"Song already in library</span>
                                         : thisSongError
