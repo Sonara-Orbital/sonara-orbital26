@@ -10,7 +10,7 @@ import musicbrainzngs as mbn
 import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
 
-load_dotenv(dotenv_path=".env.local")
+load_dotenv()
 
 app = FastAPI()
 
