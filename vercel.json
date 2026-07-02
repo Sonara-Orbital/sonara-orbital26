@@ -8,11 +8,5 @@
       "src": "fastapi/app/main.py",
       "use": "@vercel/python"
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "fastapi/app/main.py"
-    }
   ]
 }

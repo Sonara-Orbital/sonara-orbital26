@@ -10,7 +10,6 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { FieldDescription, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { POST } from "@/app/api/chat/route"
 import { MusicCard } from "@/components/ui/music-card";
 import { ChatCard } from "@/components/ui/text-chat-card";
 import { addSong, addSongFromTitleArtist } from "@/actions/songs";
@@ -46,7 +45,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     const [turns, setTurns] = useState<Turn[]>([]);
 
     async function searchSingleSong(songName: string): Promise<Song> {
-        const response = await fetch("/api/search", {
+        const response = await fetch("/next-api/search", {
             method: "POST",
             headers: {"Content-Type": "application/json" },
             body: JSON.stringify({ userInput: songName})
@@ -78,7 +77,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             console.log(songName, artistName);
             console.log("gemini", songName)
 
-            const res = await fetch("http://localhost:8000/api/process", {
+            const res = await fetch("/api/process", {
                 method: "POST",
                 headers: {"Content-Type": "application/json" },
                 body: JSON.stringify({ 
