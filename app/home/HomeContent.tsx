@@ -40,9 +40,11 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
     const [songs, setSongs] = useState<Song[]>([]);
     const [loaded, setLoaded] = useState(false);
+
+    // Search mode is either "song" or "mood"
+    const [searchMode, setSearchMode] = useState("song");
     
     const [inputVal, setInputVal] = useState("");
-
     const [turns, setTurns] = useState<Turn[]>([]);
 
     async function searchSingleSong(songName: string): Promise<Song> {
