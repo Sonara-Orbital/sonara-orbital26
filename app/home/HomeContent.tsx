@@ -32,6 +32,7 @@ interface Turn {
     userInput: string;
     songs: Song[] | null;
     isLoading: boolean;
+    error?: string | null;
 }
 
 export default function HomeContent({ userMetadata, children }: HomeContentProps) {
@@ -121,7 +122,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             console.error("Error fetching here!!! ", e);
             setTurns(prev => prev.map((turn, i) => 
                 i === turnIndex 
-                ? {...turn, songs: [], isLoading: false}
+                ? {...turn, songs: [], isLoading: false, error: "Failed to generate song"}
                 : turn
             ));
         }
@@ -155,6 +156,8 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
+                        {/* Display error message if db error */}
+                        {turn.error && (<div className="bg-red-100 bg-destructive/15 w-fit p-2 border !border-black border-destructive/15">{turn.error}</div>)}
                         {turn.isLoading ? <Loader2 className="animate-spin ml-10"/> :
                         (turn.songs ?? []).map((song, i) => {
                             const songKey = `${song.track_name}-${song.artist_name}`;
