@@ -41,6 +41,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
     const [songs, setSongs] = useState<Song[]>([]);
     const [loaded, setLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Search mode is either "song" or "mood"
     const [searchMode, setSearchMode] = useState("song");
@@ -70,12 +71,13 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
         const turnIndex = turns.length;
         try {
+            setIsLoading(true);
             const newTurn = { userInput: inputVal, songs: null, isLoading: true};
             setTurns(prev => [...prev, newTurn]);
             setInputVal("");
 
             let res;
-            // Search similar song
+            // SEARCH IN SONG MODE
             if (searchMode == "song") {
                 const track = await searchSingleSong(inputVal);
                 const songName = track.track_name;
@@ -92,13 +94,13 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                         artistName
                     })
                 });
-            // Search with mood prompt
+            // SEARCH IN MOOD MODE
             } else if (searchMode == "mood") {
-                console.log("WWWWWWWWWWW")
-                res = await fetch("http://localhost:8000/api/recommend/mood", {
+                console.log("FETCHING MOOD")
+                res = await fetch("http://localhost:8000/api/mood", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ moodPrompt: inputVal }) // or pass via URL query parameter depending on your FastAPI setup
+                    body: JSON.stringify({ moodPrompt: inputVal })
                 });
             } else {
                 console.error("Mode not found");
@@ -108,7 +110,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             if (!res?.ok) {console.log("not ok")}
 
             const songData = await res?.json();
-            const fetchPromises = await songData.data.map((songNamer: string) => searchSingleSong(songNamer));
+            const fetchPromises = await songData.data?.map((songNamer: string) => searchSingleSong(songNamer));
             const results: Song[] = await Promise.all(fetchPromises);
 
             setTurns(prev => prev.map((turn, i) => 
@@ -119,12 +121,14 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             setInputVal("");
 
         } catch (e) {
-            console.error("Error fetching here!!! ", e);
+            // console.error("Error fetching here!!! ", e);
             setTurns(prev => prev.map((turn, i) => 
                 i === turnIndex 
                 ? {...turn, songs: [], isLoading: false, error: "Failed to generate song"}
                 : turn
             ));
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -219,7 +223,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                 <InputGroupInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} className="w-full" placeholder="Piano Man by Billy Joel..." />
                             </InputGroup>
                             <ButtonGroup>
-                                <Button type="submit" className="hover:bg-gray-200/70">Go</Button>
+                                <Button type="submit" disabled={isLoading} className="hover:bg-gray-200/70"> {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"} </Button>
                             </ButtonGroup>
                         </ButtonGroup>
                         <FieldDescription className="pl-1 pt-2">Enter the song and or artist you want to search for</FieldDescription>
