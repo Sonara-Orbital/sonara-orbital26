@@ -14,12 +14,16 @@ from database import supabase
 
 router = APIRouter()
 
+class MoodInput(BaseModel):
+    moodPrompt: str
+
 ## MOOD RECOMMENDER ##
 def recommender():
-    return ["I want it that way", "Glory of love", "I want to break free", "I want to hold your hand", "I want you back"]
+    return ["Test Drive"]
 
 @router.post("/mood")
-async def get_mood_recommendations(mood_input: str) -> list[str]:
+async def get_mood_recommendations(mood_input: MoodInput):
+    print(mood_input.moodPrompt)
     # result = ["I want it that way", "Glory of love", "I want to break free", "I want to hold your hand", "I want you back"]
     result = recommender()
     # 1. Convert mood string to vector
