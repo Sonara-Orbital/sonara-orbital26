@@ -32,6 +32,7 @@ interface Turn {
     userInput: string;
     songs: Song[] | null;
     isLoading: boolean;
+    error?: string | null;
 }
 
 export default function HomeContent({ userMetadata, children }: HomeContentProps) {
@@ -40,9 +41,12 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
     const [songs, setSongs] = useState<Song[]>([]);
     const [loaded, setLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Search mode is either "song" or "mood"
+    const [searchMode, setSearchMode] = useState("song");
     
     const [inputVal, setInputVal] = useState("");
-
     const [turns, setTurns] = useState<Turn[]>([]);
 
     async function searchSingleSong(songName: string): Promise<Song> {
@@ -65,32 +69,48 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
         e.preventDefault()
         if (!inputVal.trim()) return;
 
+        const turnIndex = turns.length;
         try {
-            
+            setIsLoading(true);
             const newTurn = { userInput: inputVal, songs: null, isLoading: true};
             setTurns(prev => [...prev, newTurn]);
             setInputVal("");
-            const turnIndex = turns.length;
 
-            const track = await searchSingleSong(inputVal);
-            const songName = track.track_name;
-            const artistName = track.artist_name
-            console.log(songName, artistName);
-            console.log("gemini", songName)
+            let res;
+            // SEARCH IN SONG MODE
+            if (searchMode == "song") {
+                const track = await searchSingleSong(inputVal);
+                const songName = track.track_name;
+                const artistName = track.artist_name
+                console.log(songName, artistName);
+                console.log("gemini", songName)
+                
+                
+                res = await fetch("http://localhost:8000/api/process", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        songName,
+                        artistName
+                    })
+                });
+            // SEARCH IN MOOD MODE
+            } else if (searchMode == "mood") {
+                console.log("FETCHING MOOD")
+                res = await fetch("http://localhost:8000/api/mood", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ moodPrompt: inputVal })
+                });
+            } else {
+                console.error("Mode not found");
+                return;
+            }
 
-            const res = await fetch("http://localhost:8000/api/process", {
-                method: "POST",
-                headers: {"Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    songName,
-                    artistName
-                })
-            });
+            if (!res?.ok) {console.log("not ok")}
 
-            if (!res.ok) {console.log("not ok")}
-
-            const songData = await res.json();
-            const fetchPromises = await songData.data.map((songNamer: string) => searchSingleSong(songNamer));
+            const songData = await res?.json();
+            const fetchPromises = await songData.data?.map((songNamer: string) => searchSingleSong(songNamer));
             const results: Song[] = await Promise.all(fetchPromises);
 
             setTurns(prev => prev.map((turn, i) => 
@@ -101,7 +121,14 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             setInputVal("");
 
         } catch (e) {
-            console.error("Error fetching here!!! ", e)
+            // console.error("Error fetching here!!! ", e);
+            setTurns(prev => prev.map((turn, i) => 
+                i === turnIndex 
+                ? {...turn, songs: [], isLoading: false, error: "Failed to generate song"}
+                : turn
+            ));
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -133,6 +160,8 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
+                        {/* Display error message if db error */}
+                        {turn.error && (<div className="bg-red-100 bg-destructive/15 w-fit p-2 border !border-black border-destructive/15">{turn.error}</div>)}
                         {turn.isLoading ? <Loader2 className="animate-spin ml-10"/> :
                         (turn.songs ?? []).map((song, i) => {
                             const songKey = `${song.track_name}-${song.artist_name}`;
@@ -179,12 +208,22 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 <form className="mb-auto mt-1" onSubmit={handleSubmit}>
                 <div className="w-7/10 text-center mt-60 ml-70 mb-10">
                     <FieldLabel className="pt-5 pb-2"></FieldLabel>
+                <ButtonGroup className="mb-2">
+                    <Button type="button"
+                        onClick={() => setSearchMode("song")}
+                        variant={searchMode == "song" ? "default" : "secondary"}
+                    >Similar Song Mode</Button>
+                    <Button type="button" 
+                        onClick={() => setSearchMode("mood")}
+                        variant={searchMode == "mood" ? "default" : "secondary"}
+                    >Mood Mode</Button>
+                </ButtonGroup>
                         <ButtonGroup className="w-full">
                             <InputGroup className="w-6/10">
                                 <InputGroupInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} className="w-full" placeholder="Piano Man by Billy Joel..." />
                             </InputGroup>
                             <ButtonGroup>
-                                <Button type="submit" className="hover:bg-gray-200/70">Go</Button>
+                                <Button type="submit" disabled={isLoading} className="hover:bg-gray-200/70"> {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"} </Button>
                             </ButtonGroup>
                         </ButtonGroup>
                         <FieldDescription className="pl-1 pt-2">Enter the song and or artist you want to search for</FieldDescription>

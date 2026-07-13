@@ -2,17 +2,18 @@ from supabase import create_client, Client
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from dotenv import load_dotenv
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import json, ast, os, joblib, spotipy
 import musicbrainzngs as mbn
 import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
-
-load_dotenv()
+from mood_recommender import router as recommend_router
+from database import supabase  # Client created in database.py
 
 app = FastAPI()
+
+app.include_router(recommend_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,10 +34,6 @@ except Exception as exc:
     sp = None
     print(f"Skipped spotify client: {exc}")
 
-SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-
 bundle = joblib.load("knn_model_joblib")
 nn_model = bundle["model"]
 song_idxs = bundle["ids"]
@@ -44,6 +41,7 @@ vectors = bundle["vectors"]
 
 
 # MAIN MATH LOGIC returns array of neighbour song_id's, return limit number of recommendations
+
 def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) -> list[str]:
     idx = supabase.table("Song_Vectors").select("embedding").eq("id", song_id)\
         .not_.in_("id", blackListedSongIds)\
@@ -63,7 +61,7 @@ def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) 
     return raw_ids
 
 
-# MAIN RECOMMENDER FUNCTION 
+# MAIN RECOMMENDER FUNCTION #
 def recommender(song_name: str, artist_name="") -> list[str]:
     if (artist_name==""):
         song = supabase.table("Songs").select("id").ilike("track_name", song_name).execute().data
@@ -82,12 +80,15 @@ def recommender(song_name: str, artist_name="") -> list[str]:
     
     #print(results)
     #print("===========================================")
-    song_results = []
-    for id in results:
-        record = supabase.table("Songs").select("track_name").eq("id", id).execute().data[0]
-        song_name = record["track_name"]
-        print(song_name)
-        song_results.append(song_name)
+    # song_results = []
+    # for id in results:
+    #     record = supabase.table("Songs").select("track_name").eq("id", id).execute().data[0]
+    #     song_name = record["track_name"]
+    #     print(song_name)
+    #     song_results.append(song_name)
+
+    records = supabase.table("Songs").select("track_name", "artist_name").in_("id", results).execute().data
+    song_results = [record["track_name"] for record in records]
     
     #print(song_results)
     
@@ -102,7 +103,8 @@ async def recommend_song(inputData: DataInput):
 
 
 
-
+############################################################
+# SCROLLER RECOMMENDER LOGIC #
 
 
 
@@ -137,7 +139,7 @@ class SimpleSong(BaseModel):
     title: str
     artist: str
 
-### SCROLLER RECOMMENDER recommends songs excluding seen and library songs, return list of SimplsSong's
+### SCROLLER RECOMMENDER recommends songs excluding seen and library songs, return list of SimpleSong's
 def scroller_recommender(user_id: str, blackListIds: list[str]) -> list[SimpleSong]:
     # Get last 5 added songs
     songResponse = supabase.table("User_saved_songs").select("song_id")\
