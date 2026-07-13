@@ -9,7 +9,6 @@ import json, ast, os, joblib, spotipy
 import musicbrainzngs as mbn
 import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
-from mood_recommender import router as recommend_router
 from fastapi import APIRouter
 from database import supabase 
 
@@ -24,7 +23,7 @@ async def get_mood_recommendations(mood_input: str) -> list[str]:
     # result = ["I want it that way", "Glory of love", "I want to break free", "I want to hold your hand", "I want you back"]
     result = recommender()
     # 1. Convert mood string to vector
-    
+
     # 2. Find nearest neighbours
 
     # 3. Fetch song titles from supabase
