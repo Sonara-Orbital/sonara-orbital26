@@ -1,0 +1,10 @@
+
+outputFormat: json
+outputFrames: 0
+
+highlevel:
+  compute: 1
+  models:
+    - "./bin/deam-msd-musicnn-1.pb"
+    - "./bin/mood_acoustic-musicnn-msd-2.pb"
+    - "./bin/voice_instrumental-musicnn-msd-2.pb"
