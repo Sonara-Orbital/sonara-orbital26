@@ -19,7 +19,7 @@ class MoodInput(BaseModel):
 
 ## MOOD RECOMMENDER ##
 def recommender():
-    return ["I want it that way", "Glory of love", "I want to break free", "I want to hold your hand", "I want you back"]
+    return ["Test Drive"]
 
 @router.post("/mood")
 async def get_mood_recommendations(mood_input: MoodInput):
