@@ -3,8 +3,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import subprocess, os, uuid, requests, json, librosa
 import numpy as np
-import tensorflow as tf
 from contextlib import asynccontextmanager
+from essentia.standard import MonoLoader, TensorflowPredictMusiCNN, TensorflowPredict2D, RhythmExtractor2013, Danceability, Loudness
 
 
 class TrackRequest(BaseModel):
@@ -22,59 +22,32 @@ LOADED_MODELS = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    models_to_load = {
-        "deam": "deam-msd-musicnn-1.pb",
+    embedding_model_path = os.path.join(BIN_DIR, "msd-musicnn-1.pb")
+
+    self_contained_models = {
         "acoustic": "mood_acoustic-musicnn-msd-2.pb",
         "instrumental": "voice_instrumental-musicnn-msd-2.pb"
     }
 
-    for nickname, filename in models_to_load.items():
+    for nickname, filename in self_contained_models.items():
         model_path = os.path.join(BIN_DIR, filename)
         if not os.path.exists(model_path):
             print("Model file not found")
             continue
-        
-        try:
-            graph = tf.Graph()
-            with graph.as_default():
-                with tf.io.gfile.GFile(model_path, "rb") as f:
-                    graph_def = tf.compat.v1.GraphDef()
-                    graph_def.ParseFromString(f.read())
-                    tf.import_graph_def(graph_def, name="")
-             
-            session = tf.compat.v1.Session(graph=graph)
-
-            try: 
-                input_tensor = graph.get_tensor_by_name("model/Placeholder:0")
-            except KeyError: 
-                input_tensor = graph.get_tensor_by_name("flatten_in_input:0")
-            
-            output_options= [
-                "model/Sigmoid:0",
-                "dense_out:0"
-            ]
-
-            output_tensor = None
-
-            for option in output_options:
-                try:
-                    output_tensor = graph.get_tensor_by_name(option)
-                    break
-                except KeyError:
-                    continue
-            
-            LOADED_MODELS[nickname] = {
-                "session": session,
-                "input_tensor": input_tensor,
-                "output_tensor": output_tensor
+        LOADED_MODELS[nickname] = {
+            "type": "direct",
+            "algo": TensorflowPredictMusiCNN(graphFilename=model_path, output="model/Sigmoid")
+        }
+        deam_path = os.path.join(BIN_DIR, "deam-msd-musicnn-1.pb")
+        if os.path.exists(embedding_model_path) and os.path.exists(deam_path):
+            LOADED_MODELS["deam"] = {
+                "type": "embedding",
+                "embedding_algo": TensorflowPredictMusiCNN(graphFilename=embedding_model_path, output="model/dense/BiasAdd"),
+                "algo": TensorflowPredict2D(graphFilename=deam_path, input="flatten_in_input", output="dense_out")
             }
-        except Exception as e:
-            print(f"Error: {str(e)}")
         
     yield
-
-    for name, resources in LOADED_MODELS.items():
-        resources["session"].close()
+    LOADED_MODELS.clear()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -107,38 +80,19 @@ def run_all_models(audio_path: str) -> dict:
     highlevels = {}
 
     try:
-        audio, sr = librosa.load(audio_path, sr=16000, mono=True)
+        audio = MonoLoader(filename=audio_path, sampleRate=16000, resampleQuality=4)()
 
         for nickname, model in LOADED_MODELS.items():
-            input_tensor = model["input_tensor"]
-            shape = input_tensor.shape.as_list()
-            mel = librosa.feature.melspectrogram(y=audio, sr=sr, n_mels=128, hop_length=512)
-            mel_db = librosa.power_to_db(mel, ref=np.max)
-            flattened = mel_db.flatten()
-
-            if nickname == "deam":
-                num_wins = len(flattened) // 200
-                trimmed = flattened[:num_wins * 200]
-                audio_input = trimmed.reshape(num_wins, 1, 200)
-            elif nickname == "acoustic":
-                num_wins = len(flattened) // 187 
-                trimmed = flattened[:num_wins * 200]
-                audio_input = trimmed.reshape(num_wins, 1, 200)
+            if model["type"] == "direct":
+                prediction = model["algo"](audio)
             else: 
-                audio_input = np.expand_dims(audio, axis=0)
-             
-            prediction = model["session"].run(
-                model["output_tensor"],
-                feed_dict={model["input_tensor"]: audio_input}
-            )
-            flat = np.squeeze(prediction).flatten()
-            highlevels[nickname] = [float(x) for x in flat]
+                embeddings = model["embedding_algo"](audio)
+                prediction = model["algo"](embeddings)
+            highlevels[nickname] = [float(x) for x in prediction.mean(axis=0)]
+
     except Exception as e:
         print(f"batch iterference failed: {str(e)}")
     
-    print("---------------------------------------------------")
-    print(highlevels)
-    print("---------------------------------------------------")
     return highlevels
 
 def extract_features (track_url: str, task_id: str):
@@ -159,27 +113,30 @@ def extract_features (track_url: str, task_id: str):
         with open(input_audio, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-        
-        print(EXTRACTOR_PATH)
-        command = [EXTRACTOR_PATH, input_audio, output_json]
 
-        result = subprocess.run(command, cwd=BASE_DIR, capture_output=True, text=True, check=True)
+        audio_44k = MonoLoader(filename=input_audio, sampleRate=44000)()
+        rythm_extractor = RhythmExtractor2013(method="multifeature")
+        bpm, beats, beats_confidence, _, beats_intervals = rythm_extractor(audio_44k)
 
-        if os.path.exists(output_json):
-            with open(output_json, 'r', encoding='utf-8') as f:
-                features_data = json.load(f)
-            
-            highlevel = run_all_models(input_audio)
-            features_data["highlevel"] = highlevel
+        danceability_extractor = Danceability()
+        danceability, dfa = danceability_extractor(audio_44k)
 
-            print(features_data)
-        else: 
-            print("Extractor Failed")
-    except subprocess.CalledProcessError as e:
-        print(f"Essentia Error: {e}")
-        print("-------------")
-        print(e.stderr)
-        print("-------------")
+        loudness_extractor = Loudness()
+        loudness = loudness_extractor(audio_44k)
+
+        highlevels = run_all_models(input_audio)
+        highlevels['acousticness'] = highlevels['acoustic'][0]
+        highlevels['instrumentalness'] = highlevels['instrumental'][0]
+        highlevels['valence'] = highlevels['deam'][0]
+        highlevels['energy'] = highlevels['deam'][1]
+        highlevels['tempo'] = bpm
+        highlevels['danceability'] = danceability
+        highlevels['loudness'] = loudness 
+        highlevels.pop('acoustic')
+        highlevels.pop('deam')
+        highlevels.pop('instrumental')
+        print(highlevels)
+
     except Exception as e:
         print(f"Other Error: {e}")
     finally:
