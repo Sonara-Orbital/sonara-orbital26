@@ -2,7 +2,6 @@ from supabase import create_client, Client
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from dotenv import load_dotenv
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import json, ast, os, joblib, spotipy
@@ -10,8 +9,7 @@ import musicbrainzngs as mbn
 import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
 from mood_recommender import router as recommend_router
-
-load_dotenv()
+from database import supabase  # Client created in database.py
 
 app = FastAPI()
 
@@ -35,10 +33,6 @@ try:
 except Exception as exc:
     sp = None
     print(f"Skipped spotify client: {exc}")
-
-SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 bundle = joblib.load("knn_model_joblib")
 nn_model = bundle["model"]
