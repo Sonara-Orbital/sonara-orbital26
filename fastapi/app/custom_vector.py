@@ -125,13 +125,13 @@ def extract_features (track_url: str, task_id: str):
         loudness = loudness_extractor(audio_44k)
 
         highlevels = run_all_models(input_audio)
+        highlevels['danceability'] = danceability
+        highlevels['energy'] = highlevels['deam'][1]
+        highlevels['loudness'] = loudness 
         highlevels['acousticness'] = highlevels['acoustic'][0]
         highlevels['instrumentalness'] = highlevels['instrumental'][0]
         highlevels['valence'] = highlevels['deam'][0]
-        highlevels['energy'] = highlevels['deam'][1]
         highlevels['tempo'] = bpm
-        highlevels['danceability'] = danceability
-        highlevels['loudness'] = loudness 
         highlevels.pop('acoustic')
         highlevels.pop('deam')
         highlevels.pop('instrumental')

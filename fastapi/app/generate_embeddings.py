@@ -1,5 +1,8 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+import joblib, os, json
+from sklearn.neighbors import NearestNeighbors
+from supabase import create_client, Client
+from fastapi import FastAPI
 import numpy as np
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -19,10 +22,8 @@ FEATURES = [
     "danceability",
     "energy",
     "loudness",
-    "speechiness",
     "acousticness",
     "instrumentalness",
-    "liveness",
     "valence",
     "tempo",
 ]
@@ -41,15 +42,13 @@ tracks = (
     .data
 )
 
-def make_vector(track: dict) -> list[float]:
+def make_vector(track) -> list[float]:
     return [
         float(track["danceability"]),
         float(track["energy"]),
         min_max_scale(float(track["loudness"]), loudness_min, loudness_max),
-        float(track["speechiness"]),
         float(track["acousticness"]),
         float(track["instrumentalness"]),
-        float(track["liveness"]),
         float(track["valence"]),
         min_max_scale(float(track["tempo"]), loudness_min, loudness_max),
     ]
@@ -81,18 +80,31 @@ tempo_max = max(tempo_values)
 loudness_min = min(loudness_values)
 loudness_max = max(loudness_values)
 
-rows_to_insert = []
+ids = []
+vectors = []
 for track in all_rows:
-    rows_to_insert.append({
-        "id": track["id"],
-        "embedding": make_vector(track),
-    })
+    ids.append(track["id"])
+    vectors.append(np.array(make_vector(track)))
 
-    if len(rows_to_insert) == PAGE_SIZE:
-        supabase.table("Song_Vectors").upsert(rows_to_insert).execute()
-        print(f"Upserted {len(rows_to_insert)} embeddings")
-        rows_to_insert = []
+nn_model = NearestNeighbors(metric='cosine', algorithm='auto')
+training_vectors = np.stack(vectors)
+print(training_vectors.shape)
+print(type(training_vectors))
+nn_model.fit(training_vectors)
 
-if rows_to_insert:
-    supabase.table("Song_Vectors").upsert(rows_to_insert).execute()
-    print(f"Upserted final {len(rows_to_insert)} rows")
+joblib.dump(
+    {"model": nn_model,
+    "ids": ids,
+    "vectors": training_vectors},
+    "knn_model_joblib"
+)
+
+
+#    if len(rows_to_insert) == PAGE_SIZE:
+#        supabase.table("Song_Vectors").upsert(rows_to_insert).execute()
+#        print(f"Upserted {len(rows_to_insert)} embeddings")
+#        rows_to_insert = []
+
+#if rows_to_insert:
+#    supabase.table("Song_Vectors").upsert(rows_to_insert).execute()
+#    print(f"Upserted final {len(rows_to_insert)} rows")
