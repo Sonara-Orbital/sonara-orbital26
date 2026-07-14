@@ -1,0 +1,12 @@
+essentia==2.1b6.dev1438
+joblib==1.5.3
+librosa==0.11.0
+musicbrainzngs==0.7.1
+numpy==2.5.1
+pandas==3.0.3
+pydantic==2.13.4
+Requests==2.34.2
+scikit_learn==1.9.0
+spotipy==2.26.0
+uvicorn==0.51.0
+zstandard==0.25.0
