@@ -15,7 +15,7 @@ def generate_song_description(title: str, artist: str, tags: list[str]) -> str:
     Keep it strictly factual to the context of the tags, avoiding dynamic filler or marketing hype.
     """
 
-    response = chat("ollama/llama3.1", 
+    response = chat("llama3.1", 
                     messages=[{'role': 'user', 'content': prompt}],
                     format=SongDescriptionInput.model_json_schema(),
                     options={'temperature': 0.1, 'max_tokens': 300})
