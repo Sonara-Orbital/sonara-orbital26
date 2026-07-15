@@ -35,6 +35,7 @@ interface Turn {
     error?: string | null;
 }
 
+
 export default function HomeContent({ userMetadata, children }: HomeContentProps) {
     const [profileOpen, setProfileOpen] = useState(false);
     const toggleProfile = () => setProfileOpen(!profileOpen);
@@ -121,7 +122,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             setInputVal("");
 
         } catch (e) {
-            // console.error("Error fetching here!!! ", e);
+            console.error("Error fetching here!!! ", e);
             setTurns(prev => prev.map((turn, i) => 
                 i === turnIndex 
                 ? {...turn, songs: [], isLoading: false, error: "Failed to generate song"}
