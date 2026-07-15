@@ -172,6 +172,7 @@ tempo_min = min(tempo_values)
 tempo_max = max(tempo_values)
 loudness_min = min(loudness_values)
 loudness_max = max(loudness_values)
+print(tempo_max, tempo_min, loudness_max, loudness_min)
 
 rows_to_insert = []
 for track in all_rows:

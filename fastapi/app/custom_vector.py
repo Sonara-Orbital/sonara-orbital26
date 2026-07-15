@@ -1,10 +1,10 @@
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-import subprocess, os, uuid, requests, json, librosa
+import joblib, os, uuid, requests, json, librosa
 import numpy as np
 from contextlib import asynccontextmanager
-from essentia.standard import MonoLoader, TensorflowPredictMusiCNN, TensorflowPredict2D, RhythmExtractor2013, Danceability, Loudness
+from essentia.standard import MonoLoader, TensorflowPredictMusiCNN, TensorflowPredict2D, RhythmExtractor2013, Danceability, LoudnessEBUR128, MusicExtractor, AudioLoader
 
 
 class TrackRequest(BaseModel):
@@ -95,10 +95,45 @@ def run_all_models(audio_path: str) -> dict:
     
     return highlevels
 
+def calc_danceability(features: dict) -> float:
+    bpm = features['rhythm.bpm']
+    bpm_score = np.exp(-((bpm - 124.0) ** 2) / (2 * (22.0 ** 2)))
+    dyn_comp = max(features['lowlevel.dynamic_complexity'], 0.5)
+    beat_loudness = features['rhythm.beats_loudness.mean']
+    raw_groove = dyn_comp / beat_loudness
+    groove_score = 1 / (1 + np.exp(-(raw_groove - 0.1) * 5))
+    low_energy = features['lowlevel.spectral_energyband_low.mean']
+    high_energy = features['lowlevel.spectral_energyband_high.mean']
+
+    raw_bass_drive = np.log1p(low_energy) / (np.log1p(high_energy) + 1e-5)
+    bass_score = 1 / (1 + np.exp(-(raw_bass_drive - 1.2) * 3))
+
+    onset_rate = features['rhythm.onset_rate']
+    onset_score = np.exp(-((onset_rate - 4.0) ** 2) / (2 * (1.5 ** 2)))
+
+    chord_changes = features["tonal.chords_changes_rate"]
+    harmony_modifier = 1.0 - min(chord_changes * 0.5, 0.3)
+
+    final_score = (
+        (bpm_score * 0.25) + 
+        (groove_score * 0.35) + 
+        (bass_score * 0.2) +
+        (onset_score * 0.2)
+    ) * harmony_modifier
+
+    return final_score.item()
+
+def min_max_scale(value: float, min_value: float, max_value: float) -> float:
+    if max_value == min_value:
+        return 0.0
+    return (value - min_value) / (max_value - min_value)
+
+artifacts = joblib.load("dance_model")
+dance_model = artifacts["model"]
+
 def extract_features (track_url: str, task_id: str):
     
     input_audio = os.path.join(TEMP_DIR, f"{task_id}.m4a")
-    output_json = os.path.join(TEMP_DIR, f"{task_id}.json")
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -114,36 +149,55 @@ def extract_features (track_url: str, task_id: str):
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
 
-        audio_44k = MonoLoader(filename=input_audio, sampleRate=44000)()
-        rythm_extractor = RhythmExtractor2013(method="multifeature")
-        bpm, beats, beats_confidence, _, beats_intervals = rythm_extractor(audio_44k)
+        audio_44k = MonoLoader(filename=input_audio, sampleRate=44100)()
+        bpm, beats, beats_confidence, _, beats_intervals = RhythmExtractor2013(method="multifeature")(audio_44k)
+        features, feature_frames = MusicExtractor(lowlevelStats=['mean', 'stdev'], rhythmStats=['mean', 'stdev'], tonalStats=['mean', 'stdev'])(input_audio)
 
-        danceability_extractor = Danceability()
-        danceability, dfa = danceability_extractor(audio_44k)
+        dance_feat = {}
+        feature_columns = [
+            'rhythm.bpm', 
+            'rhythm.onset_rate', 
+            'rhythm.beats_loudness.mean',
+            'lowlevel.dynamic_complexity', 
+            'lowlevel.spectral_energyband_low.mean',
+            'lowlevel.spectral_energyband_high.mean', 
+            'tonal.chords_changes_rate',
+            'lowlevel.spectral_flux.mean'
+        ]
 
-        loudness_extractor = Loudness()
-        loudness = loudness_extractor(audio_44k)
+        for feat in feature_columns:
+            dance_feat[feat] = features[feat]
+
+        dance_feat['raw_groove'] = dance_feat.get('rhythm.beats_loudness.mean', 0.0) / (dance_feat.get('lowlevel.dynamic_complexity', 0.0) + 1e-5)
+        dance_feat['bass_drive'] = dance_feat.get('lowlevel.spectral_energyband_low.mean', 0.0) / (dance_feat.get('lowlevel.spectral_energyband_high.mean', 0.0) + 1e-5)
+        dance_feat['bpm_closeness'] = np.exp(-((dance_feat['rhythm.bpm'] - 124.0) ** 2) / (2 * (22.0 ** 2)))
+        feature_columns.extend(['raw_groove', 'bass_drive', 'bpm_closeness'])
+        print(feature_columns)
+
+        tempo_max = 205.984
+        tempo_min = 39.082
+        loudness_max = -1.144
+        loudness_min = -29.868
 
         highlevels = run_all_models(input_audio)
-        highlevels['danceability'] = danceability
-        highlevels['energy'] = highlevels['deam'][1]
-        highlevels['loudness'] = loudness 
+        feat_vect = [dance_feat.get(col, 0.0) for col in feature_columns]
+        prediction = dance_model.predict([feat_vect])[0]
+        highlevels['danceability'] = float(np.clip(prediction, 0.0, 1.0))
+        highlevels['energy'] = (highlevels['deam'][0] - 1) / (9 - 1)
+        highlevels['loudness'] = min_max_scale(features['lowlevel.loudness_ebu128.integrated'], loudness_min, loudness_max)
         highlevels['acousticness'] = highlevels['acoustic'][0]
-        highlevels['instrumentalness'] = highlevels['instrumental'][0]
-        highlevels['valence'] = highlevels['deam'][0]
-        highlevels['tempo'] = bpm
-        highlevels.pop('acoustic')
-        highlevels.pop('deam')
-        highlevels.pop('instrumental')
+        highlevels['instrumentalness'] = (highlevels['instrumental'][0] ** 3) * 0.0001
+        highlevels['valence'] = (highlevels['deam'][0] - 1) / (9 - 1)
+        highlevels['tempo'] = min_max_scale(features['rhythm.bpm'], tempo_min, tempo_max)
         print(highlevels)
 
+        return list(highlevels.values())
+
     except Exception as e:
-        print(f"Other Error: {e}")
+        raise RuntimeError(f"Feature Extraction Failed: {e}") from e
     finally:
         if os.path.exists(input_audio):
             os.remove(input_audio)
-        #if os.path.exists(output_json):
-            #os.remove(output_json)
 
 if __name__ == "__main__":
     from fastapi.testclient import TestClient
@@ -155,21 +209,28 @@ if __name__ == "__main__":
 
     with TestClient(app) as client:
         print("lifespan active ")
-        extract_features( song_url, id)
+        try:
+            vector = extract_features(song_url, id) 
+        except RuntimeError as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/extract")
-async def get_features (payload: TrackRequest, background_tasks: BackgroundTasks):
+def get_features (payload: TrackRequest):
     if not payload.url:
         raise HTTPException(status_code=400, detail="Missing Song URL")
     task_id = str(uuid.uuid4())
 
-    background_tasks.add_task(extract_features, payload.url, task_id)
+    try:
+        vector = extract_features(payload.url, task_id)
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    return {
+    return { 
         "success": True,
-        "message": "analysis started",
-        "task_id": task_id
+        "vector": vector
     }
+
+
 
 
