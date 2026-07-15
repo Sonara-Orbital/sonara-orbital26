@@ -10,7 +10,7 @@ import musicbrainzngs as mbn
 import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
 from fastapi import APIRouter
-from database import supabase 
+from app.database import supabase 
 
 router = APIRouter()
 

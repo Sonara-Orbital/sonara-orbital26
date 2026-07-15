@@ -8,20 +8,29 @@ import json, ast, os, joblib, spotipy
 import musicbrainzngs as mbn
 import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
-from mood_recommender import router as recommend_router
-from database import supabase  # Client created in database.py
+from app.mood_recommender import router as recommend_router
+from app.database import supabase  # Client created in database.py
+from fastapi import HTTPException
+from app.custom_vector import extract_features, get_song_url
+import uuid
 
 app = FastAPI()
 
-app.include_router(recommend_router, prefix="/api")
+
+origins = [
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000"
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(recommend_router, prefix="/api")
 
 class DataInput(BaseModel):
     songName: str
@@ -43,14 +52,14 @@ vectors = bundle["vectors"]
 # MAIN MATH LOGIC returns array of neighbour song_id's, return limit number of recommendations
 
 def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) -> list[str]:
-    idx = supabase.table("Song_Vectors").select("embedding").eq("id", song_id)\
+    idx = supabase.table("Song_Vectors").select("embeddings").eq("id", song_id)\
         .not_.in_("id", blackListedSongIds)\
         .execute().data
     
     if not idx:
         return []
     
-    vector = np.array(json.loads(idx[0]["embedding"])).reshape(1, -1)
+    vector = np.array(json.loads(idx[0]["embeddings"])).reshape(1, -1)
 
     distances, indices = nn_model.kneighbors(vector, limit + 1)
 
@@ -58,6 +67,19 @@ def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) 
     indices = indices.flatten()
 
     raw_ids = [song_idxs[i] for i in indices if song_idxs[i] != song_id]
+    print("done")
+    return raw_ids
+
+def get_neighbours_by_vector(song_vector: list) -> list[str]:
+    vector = np.array(song_vector).reshape(1, -1)
+
+    distances, indices = nn_model.kneighbors(vector, 5)
+
+    distances = distances.flatten()
+    indices = indices.flatten()
+
+    raw_ids = [song_idxs[i] for i in indices]
+    print("done")
     return raw_ids
 
 
@@ -69,14 +91,17 @@ def recommender(song_name: str, artist_name="") -> list[str]:
         song = supabase.table("Songs").select("id").ilike("artist_name", artist_name).ilike("track_name", song_name).execute().data
 
     if not song:
-        results = ["no song found"]
-        return results
+        song_url = get_song_url(song_name, artist_name)
+        id = str(uuid.uuid4())
+        vec = extract_features(song_url, id)
+        results = get_neighbours_by_vector(vec)
+    else:
+        song_id = song[0]["id"]
+        results = get_raw_neighbours(song_id, 5, [])
+
     
-    song_id = song[0]["id"]
     #print(distances)
     #print(indices)
-
-    results = get_raw_neighbours(song_id, 5, [])
     
     #print(results)
     #print("===========================================")
@@ -112,14 +137,14 @@ async def recommend_song(inputData: DataInput):
 # Scroller pool recommndation logic ... returns list of song_id's
 def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackListedSongIds: list[str]) -> list[str]:
     # 1. Get embeddings for the input pool of songs
-    records = supabase.table("Song_Vectors").select("id", "embedding")\
+    records = supabase.table("Song_Vectors").select("id", "embeddings")\
         .not_.in_("id", blackListedSongIds).in_("id", seed_song_ids).execute().data
     if not records:
         print("NOT RECORDS")
         return []
     
     # 2. Put embedding into numpy arrray
-    vectors = [np.array(json.loads(r["embedding"])) for r in records]
+    vectors = [np.array(json.loads(r["embeddings"])) for r in records]
     
     # 3. Create average vector
     composite_vector = np.mean(vectors, axis=0).reshape(1, -1)

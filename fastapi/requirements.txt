@@ -6,6 +6,7 @@ audioread==3.1.0
 certifi==2026.6.17
 cffi==2.1.0
 charset-normalizer==3.4.9
+click==8.4.2
 cryptography==49.0.0
 decorator==5.3.1
 deprecation==2.1.0
@@ -25,6 +26,7 @@ librosa==0.11.0
 llvmlite==0.48.0
 msgpack==1.2.1
 multidict==6.7.1
+musicbrainzngs==0.7.1
 narwhals==2.23.0
 numba==0.66.0
 numpy==2.4.6
@@ -42,12 +44,14 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 PyYAML==6.0.3
 realtime==2.31.0
+redis==8.0.1
 requests==2.34.2
 scikit-learn==1.9.0
 scipy==1.18.0
 six==1.17.0
 soundfile==0.14.0
 soxr==1.1.0
+spotipy==2.26.0
 standard-aifc==3.13.0
 standard-chunk==3.13.0
 standard-sunau==3.13.0
@@ -61,5 +65,7 @@ threadpoolctl==3.6.0
 typing-inspection==0.4.2
 typing_extensions==4.16.0
 urllib3==2.7.0
+uvicorn==0.51.0
 websockets==15.0.1
 yarl==1.24.2
+zstandard==0.25.0
