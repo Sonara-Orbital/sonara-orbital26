@@ -10,6 +10,7 @@ import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
 from mood_recommender import router as recommend_router
 from database import supabase  # Client created in database.py
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
@@ -39,18 +40,19 @@ nn_model = bundle["model"]
 song_idxs = bundle["ids"]
 vectors = bundle["vectors"]
 
+id_to_index = {song_id: index for (index, song_id) in enumerate(song_idxs)}
 
 # MAIN MATH LOGIC returns array of neighbour song_id's, return limit number of recommendations
-
 def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) -> list[str]:
-    idx = supabase.table("Song_Vectors").select("embedding").eq("id", song_id)\
+    ## CALL SUPABASE TO GET EMBEDDING METHOD ##
+    idx = supabase.table("Song_Vectors").select("embeddings").eq("id", song_id)\
         .not_.in_("id", blackListedSongIds)\
         .execute().data
     
     if not idx:
         return []
     
-    vector = np.array(json.loads(idx[0]["embedding"])).reshape(1, -1)
+    vector = np.array(json.loads(idx[0]["embeddings"])).reshape(1, -1)
 
     distances, indices = nn_model.kneighbors(vector, limit + 1)
 
@@ -58,6 +60,8 @@ def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) 
     indices = indices.flatten()
 
     raw_ids = [song_idxs[i] for i in indices if song_idxs[i] != song_id]
+    
+
     return raw_ids
 
 
@@ -97,8 +101,11 @@ def recommender(song_name: str, artist_name="") -> list[str]:
 
 @app.post("/api/process")
 async def recommend_song(inputData: DataInput):
-    result = recommender(inputData.songName, inputData.artistName)
-    return {"status": "success", "data": result}
+    try:
+        result = recommender(inputData.songName, inputData.artistName)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 
