@@ -119,14 +119,14 @@ async def recommend_song(inputData: DataInput):
 # Scroller pool recommndation logic ... returns list of song_id's
 def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackListedSongIds: list[str]) -> list[str]:
     # 1. Get embeddings for the input pool of songs
-    records = supabase.table("Song_Vectors").select("id", "embedding")\
+    records = supabase.table("Song_Vectors").select("id", "embeddings")\
         .not_.in_("id", blackListedSongIds).in_("id", seed_song_ids).execute().data
     if not records:
         print("NOT RECORDS")
         return []
     
     # 2. Put embedding into numpy arrray
-    vectors = [np.array(json.loads(r["embedding"])) for r in records]
+    vectors = [np.array(json.loads(r["embeddings"])) for r in records]
     
     # 3. Create average vector
     composite_vector = np.mean(vectors, axis=0).reshape(1, -1)
