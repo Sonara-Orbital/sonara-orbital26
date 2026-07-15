@@ -11,6 +11,7 @@ import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
 from fastapi import APIRouter
 from database import supabase, LASTFM_API_KEY
+from sentence_transformers import SentenceTransformer
 
 router = APIRouter()
 
@@ -18,8 +19,25 @@ class MoodInput(BaseModel):
     moodPrompt: str
 
 ## MOOD RECOMMENDER ##
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
 def recommender():
+    vectorise_user_mood = model.encode("Give me a sad song to listen to alone on the highway")
+    print(vectorise_user_mood)
     return ["Test Drive"]
+recommender()
+
+# Testing Lastfm API
+def test_tags():
+    url = f"https://ws.audioscrobbler.com/2.0/?method=track.gettoptags&api_key={LASTFM_API_KEY}&artist=the+weeknd&track=blinding+lights&format=json"
+    response = requests.get(url)
+    data = response.json()
+    print(data)
+    for song in data['toptags']['tag']:
+        print(song['name'])
+
+test_tags()
+
 
 @router.post("/mood")
 async def get_mood_recommendations(mood_input: MoodInput):
@@ -34,13 +52,3 @@ async def get_mood_recommendations(mood_input: MoodInput):
 
     return {"status": "success", "data": result}
 
-
-def test_tags():
-    url = f"https://ws.audioscrobbler.com/2.0/?method=track.gettoptags&api_key={LASTFM_API_KEY}&artist=one+direction&track=history&format=json"
-    response = requests.get(url)
-    data = response.json()
-    print(data)
-    for song in data['toptags']['tag']:
-        print(song['name'])
-
-test_tags()
