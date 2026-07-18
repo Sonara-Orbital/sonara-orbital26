@@ -44,6 +44,9 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     const [loaded, setLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
+    const username = userMetadata.username 
+    console.log(userMetadata)
+
     // Search mode is either "song" or "mood"
     const [searchMode, setSearchMode] = useState("song");
     
@@ -154,7 +157,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
    return (
     <SidebarProvider>
-        <HomeSidebar />
+        <HomeSidebar username={username}/>
         <SidebarInset>
             <div className="w-full h-10 my-5" />
             <main className="w-full ">
