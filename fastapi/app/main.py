@@ -122,11 +122,15 @@ async def recommend_song(inputData: DataInput):
 
 # Scroller pool recommndation logic ... returns list of song_id's
 def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackListedSongIds: list[str]) -> list[str]:
+    if not seed_song_ids:
+        raise ValueError("seed_song_ids cannot be empty")
+
     # 1. Get embeddings for the input pool of songs
     records = supabase.table("Song_Vectors").select("id", "embeddings")\
         .not_.in_("id", blackListedSongIds).in_("id", seed_song_ids).execute().data
     if not records:
         print("NOT RECORDS")
+        print("SEED SONG IDS", seed_song_ids)
         return []
     
     # 2. Put embedding into numpy arrray
@@ -192,13 +196,13 @@ class scrollerInput(BaseModel):
 
 @app.post("/api/scroller-pool")
 async def recommend_song_scroller(inputData: scrollerInput):
-    result = scroller_recommender(inputData.user_id, inputData.blackListIds)
-    print("INPUT", inputData.user_id)
-    print("RESULT", result)
-    return {"status": "success", "data": result}
-
-
-
+    try:
+        result = scroller_recommender(inputData.user_id, inputData.blackListIds)
+        print("SCROLLER RESULT", result)
+        return {"status": "success", "data": result}
+    except ValueError as e: 
+        print("Error:", e)
+        return {"status": "empty library error", "message": "Start adding songs to get recommendations"}
 
 ####### MOOD RECOMMENDER ENDPOINT #########
 class MoodInput(BaseModel):
