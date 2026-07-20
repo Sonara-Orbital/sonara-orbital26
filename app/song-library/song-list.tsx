@@ -43,9 +43,6 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
   });
 
   return (
-    <SidebarProvider>
-      <HomeSidebar />
-      <SidebarInset>
         <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
           <button
             onClick={() => {
@@ -140,7 +137,5 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
             </div>
           )}
         </main>
-      </SidebarInset>
-    </SidebarProvider>
   );
 }
