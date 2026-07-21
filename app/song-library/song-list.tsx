@@ -8,6 +8,7 @@ import { searchLibrary } from "@/actions/search";
 import { HomeSidebar } from "@/components/ui/home-sidebar";
 import { SidebarProvider, SidebarInset, Sidebar } from "@/components/ui/sidebar";
 import { deleteSong } from "@/actions/delete";
+import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
 
 export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
   const [isAscending, setIsAscending] = useState(false);
@@ -104,7 +105,7 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
                 <div
                   key={song.id}
                   className="group relative aspect-square overflow-hidden rounded-xl border border-black shadow-lg duration-400 hover:scale-[1.02] hover:shadow-2xl"
-                >
+                  >
                   {song.album_art_url ? (
                     <img  
                       src={song.album_art_url}
@@ -127,11 +128,14 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
                       <span className="text-gray-500 shrink-0">{song.genre}</span>
                     </div>
                   </div>
-                    {/* delete button */}
-                    <button className="opacity-0 absolute top-4 right-4 hover:text-red-500 transition-all duration-250 group-hover:opacity-100 duration-300 ease-in-out"
-                      onClick={async () => deleteSong(song.id)}> 
-                        <Trash2 className="h-5 w-5"></Trash2>
-                    </button>
+
+                  {/* delete button */}
+                  <button className="opacity-0 absolute top-4 right-4 hover:text-red-500 transition-all duration-250 group-hover:opacity-100 duration-300 ease-in-out"
+                    onClick={async () => deleteSong(song.id)}> 
+                      <Trash2 className="h-5 w-5"></Trash2>
+                  </button>
+                  {/* Spotify export button */}
+                  <SpotifyExportButton songId={song.id} className="bg-blue-500/10 opacity-0 absolute top-4 right-12 hover:text-green-500 transition-all duration-300 ease-in-out group-hover:opacity-100" />
                 </div>
               ))}
             </div>
