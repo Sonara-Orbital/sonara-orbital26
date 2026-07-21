@@ -29,7 +29,7 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
     setQueryResults(searchResults);
   }
 
-  // Display songs in user's library
+  // Display songs in user's library, displaySongs is an array of song objects
   const displaySongs = [...(currUserSongs || [])].sort((a, b) => {
     const aTime = new Date(a.created_at || 0).getTime();
     const bTime = new Date(b.created_at || 0).getTime();
@@ -129,13 +129,28 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
                     </div>
                   </div>
 
-                  {/* delete button */}
-                  <button className="opacity-0 absolute top-4 right-4 hover:text-red-500 transition-all duration-250 group-hover:opacity-100 duration-300 ease-in-out"
-                    onClick={async () => deleteSong(song.id)}> 
-                      <Trash2 className="h-5 w-5"></Trash2>
-                  </button>
+                  {/* Delete button */}
+                  <div>
+                    <button className="peer cursor-pointer opacity-0 absolute top-4 right-4 hover:text-red-500 transition-all duration-250 group-hover:opacity-100 duration-300 ease-in-out"
+                      // Delete using the id in User_saved_songs, not song id 
+                      onClick={async () => deleteSong(song.id)}>  
+                        <Trash2 className="h-5 w-5"></Trash2>
+                    </button>
+                    {/* Export tooltip */}
+                    <span className="absolute right-20 top-4 opacity-0 translate-x-9 peer-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md peer-hover:delay-400">
+                      Remove song
+                    </span>
+                  </div>
+
                   {/* Spotify export button */}
-                  <SpotifyExportButton songId={song.id} className="bg-blue-500/10 opacity-0 absolute top-4 right-12 hover:text-green-500 transition-all duration-300 ease-in-out group-hover:opacity-100" />
+                  <div className="group/tooltip relative top-4 left-4 rounded-full">
+                    <SpotifyExportButton songId={song.song_id} className="peer opacity-0 absolute hover:text-green-500/90 transition-all duration-300 ease-in-out group-hover:opacity-100" />
+                    {/* Export tooltip */}
+                    <span className="absolute right-20 top-4 opacity-0 -translate-y-4 translate-x-1 peer-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md peer-hover:delay-400">
+                      Open in Spotify
+                    </span>
+                  </div>
+
                 </div>
               ))}
             </div>
