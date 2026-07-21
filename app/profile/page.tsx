@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from "next/navigation"
 import ProfileContent from './ProfileContent';
+import { findFriends, getFriendRequests } from '../auth/actions';
 
 export default async function UserProfile({ children }: {children: React.ReactNode}) {
     const cookieStore = await cookies();
@@ -30,7 +31,14 @@ export default async function UserProfile({ children }: {children: React.ReactNo
         return <p>Profile not found</p>;
     }
 
+    const friendsList = await findFriends(userId)
+    const requestsList = await getFriendRequests(userId)
+    
+    console.log("friends list", friendsList)
+    console.log("requests list", requestsList)
+  
+
   return (
-    <ProfileContent userProfile={userProfile}>{children}</ProfileContent>
+    <ProfileContent friendsList={friendsList} requestsList={requestsList} userProfile={userProfile}>{children}</ProfileContent>
   );
 }

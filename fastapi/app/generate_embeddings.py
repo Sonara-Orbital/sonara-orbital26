@@ -50,7 +50,7 @@ def make_vector(track) -> list[float]:
         float(track["acousticness"]),
         float(track["instrumentalness"]),
         float(track["valence"]),
-        min_max_scale(float(track["tempo"]), loudness_min, loudness_max),
+        min_max_scale(float(track["tempo"]), tempo_min, tempo_max),
     ]
 
 start = 0
@@ -80,12 +80,32 @@ tempo_max = max(tempo_values)
 loudness_min = min(loudness_values)
 loudness_max = max(loudness_values)
 
+print(tempo_max, tempo_min, loudness_max, loudness_min)
+
+
+rows_to_insert = []
 ids = []
 vectors = []
 for track in all_rows:
+    vec = make_vector(track)
     ids.append(track["id"])
-    vectors.append(np.array(make_vector(track)))
+    vectors.append(np.array(vec))
+    rows_to_insert.append({
+        "id": track["id"],
+        "embeddings": vec
+    })
 
+    if len(rows_to_insert) == PAGE_SIZE:
+        supabase.table("Song_Vectors").upsert(rows_to_insert).execute()
+        print(f"Upserted {len(rows_to_insert)} embeddings")
+        rows_to_insert = []
+
+if rows_to_insert:
+    supabase.table("Song_Vectors").upsert(rows_to_insert).execute()
+    print(f"Upserted final {len(rows_to_insert)} rows")
+
+
+print("starting model training")
 nn_model = NearestNeighbors(metric='cosine', algorithm='auto')
 training_vectors = np.stack(vectors)
 print(training_vectors.shape)
@@ -99,12 +119,3 @@ joblib.dump(
     "knn_model_joblib"
 )
 
-
-#    if len(rows_to_insert) == PAGE_SIZE:
-#        supabase.table("Song_Vectors").upsert(rows_to_insert).execute()
-#        print(f"Upserted {len(rows_to_insert)} embeddings")
-#        rows_to_insert = []
-
-#if rows_to_insert:
-#    supabase.table("Song_Vectors").upsert(rows_to_insert).execute()
-#    print(f"Upserted final {len(rows_to_insert)} rows")

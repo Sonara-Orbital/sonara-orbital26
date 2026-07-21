@@ -35,6 +35,7 @@ interface Turn {
     error?: string | null;
 }
 
+
 export default function HomeContent({ userMetadata, children }: HomeContentProps) {
     const [profileOpen, setProfileOpen] = useState(false);
     const toggleProfile = () => setProfileOpen(!profileOpen);
@@ -42,6 +43,9 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     const [songs, setSongs] = useState<Song[]>([]);
     const [loaded, setLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+
+    const username = userMetadata.username 
+    console.log(userMetadata)
 
     // Search mode is either "song" or "mood"
     const [searchMode, setSearchMode] = useState("song");
@@ -121,7 +125,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             setInputVal("");
 
         } catch (e) {
-            // console.error("Error fetching here!!! ", e);
+            console.error("Error fetching here!!! ", e);
             setTurns(prev => prev.map((turn, i) => 
                 i === turnIndex 
                 ? {...turn, songs: [], isLoading: false, error: "Failed to generate song"}
@@ -153,7 +157,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
    return (
     <SidebarProvider>
-        <HomeSidebar />
+        <HomeSidebar username={username}/>
         <SidebarInset>
             <div className="w-full h-10 my-5" />
             <main className="w-full ">

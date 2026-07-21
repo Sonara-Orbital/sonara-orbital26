@@ -13,6 +13,10 @@ import {
   SidebarHeader
 } from "@/components/ui/sidebar"
 
+interface SidebarProps {
+  username: string
+}
+
 // Menu items.
 const items = [
   { title: "Home", url: "/home", icon: Home},
@@ -20,7 +24,8 @@ const items = [
   { title: "My Library", url: "/song-library", icon: Inbox},
 ]
 
-export function HomeSidebar() {
+
+export function HomeSidebar({ username }: SidebarProps) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -55,7 +60,7 @@ export function HomeSidebar() {
             <SidebarMenuButton asChild>
               <a href="/profile">
                 <User2 /> 
-                Username
+                {username} 
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
