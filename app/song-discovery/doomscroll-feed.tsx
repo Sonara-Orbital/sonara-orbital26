@@ -16,6 +16,8 @@ import { getUserBlacklist } from "@/actions/getUserBlacklist";
 import { saveUserBlacklist } from "@/actions/saveUserBlacklist";
 
 import { SwiperUpDown } from "@/components/ui/swiperUpDown"
+import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
+import { Bookmark } from "lucide-react";
 
 export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleSong[] }) {
     const [sessionSeenSongs, setSongs] = useState<SimpleSong[]>([]);
@@ -134,7 +136,7 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         onSlideChange={(swiper) => {
             // const currIndex = swiper.activeIndex;
             handleSwipeNext(swiper);
-            console.log(libraryIsEmpty, "LIBRARY IS EMPTY CANTR ADED");
+            console.log(libraryIsEmpty, "LIBRARY IS EMPTY CANT ADD");
         }}
         >
         <SwiperUpDown />
@@ -146,23 +148,38 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         )}
         
             {sessionSeenSongs.map((song, index) => (
-                <SwiperSlide key={song.song_id} className=" w-full h-full flex items-center justify-center">    
-                    <button className="bg-blue-500/30 rounded rounded-md p-3 right-4 absolute hover:bg-blue-500/70"
-                        onClick={async () => {
-                            const {success} = await addSongFromId(song.song_id); 
-                            console.log("adding");
-                            const songKey = `${song.title}-${song.artist}`;
-                            setAlreadyAdded(prev => ({...prev, [songKey]: true}));
-                            if (!success) {
-                                console.log("CANT ADD");
-                            }
-                        }}
-                    >
-                    {alreadyAdded[`${song.title}-${song.artist}`] 
-                        ? "Song added!"
-                        : "+ Add to library"
-                    }
-                    </button>
+                <SwiperSlide key={song.song_id} className="relative w-full h-full flex justify-center items-end pt-2">    
+
+                    {/* Button Group to interact with displayed song */}
+                    <div className="absolute flex right-4 gap-2">
+                        
+                        {/* Export to spotify button */}
+                        <SpotifyExportButton 
+                            songId={song.song_id} 
+                            className="peer opacity-100 hover:text-green-500/90 hover:opacity-100 opacity-80 hover:scale-110"
+                            iconSize="w-9 h-9"/>
+                        
+                        {/* Add to library button, BOOKMARK ICON*/}
+                        <button className="hover:opacity-100 opacity-80 hover:scale-110"
+                            onClick={async () => {
+                                const {success} = await addSongFromId(song.song_id); 
+                                console.log("adding");
+                                const songKey = `${song.title}-${song.artist}`;
+                                setAlreadyAdded(prev => ({...prev, [songKey]: true}));
+                                if (!success) {
+                                    console.log("CANT ADD");
+                                }
+                        }}>
+                            <Bookmark className={`w-9 h-9 hover:fill-yellow-500 hover:outline-yellow-500 
+                            ${alreadyAdded[`${song.title}-${song.artist}`] 
+                                ? "fill-yellow-500"
+                                : "none"}`}
+                            />
+                        </button>
+                        
+                    </div>
+
+                    {/* Main Song Display */}
                     <div className="flex flex-col mt-14 rounded rounded-lg bg-blue-100/80 z-20">
                         <span className="m-20 text-stone-900">
                             <h2 className="font-medium text-5xl mt-4 mb-8">{song.title}</h2>
