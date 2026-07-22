@@ -15,6 +15,7 @@ import {
 
 interface SidebarProps {
   username: string
+  className: string
 }
 
 // Menu items.
@@ -25,9 +26,9 @@ const items = [
 ]
 
 
-export function HomeSidebar({ username }: SidebarProps) {
+export function HomeSidebar({ username, className }: SidebarProps) {
   return (
-    <Sidebar collapsible="icon">
+  <Sidebar collapsible="icon" className={`fixed ${className}`}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem >

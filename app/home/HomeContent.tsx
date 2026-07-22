@@ -15,6 +15,7 @@ import { MusicCard } from "@/components/ui/music-card";
 import { ChatCard } from "@/components/ui/text-chat-card";
 import { addSong, addSongFromId } from "@/actions/songs";
 import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
+import { Bookmark } from "lucide-react";
 
 interface HomeContentProps {    
     userMetadata: any;
@@ -195,11 +196,13 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     }
 
    return (
-    <SidebarProvider>
-        <HomeSidebar username={username}/>
+    <SidebarProvider >
+        <HomeSidebar username={username} className="z-20"/>
         <SidebarInset>
             <div className="w-full h-10 my-5" />
-            <main className="w-full ">
+
+            {/* SONGS DISPLAY */}
+            <main className="w-full flex flex-col grid grid-cols-2 z-5 mb-16">
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
@@ -212,56 +215,57 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                             const thisSongAdded = !!addedSongs[songKey];
                             const thisSongAlreadyAdded = !!alreadyAdded[songKey];
 
-                            return <React.Fragment key={i}>
-                                      <form className="relative"
-                                        action={async () => {
-                                            console.log("clicked");
-                                            handleAdd(song);
-                                        }}
-                                      >
-                                        <button type="submit" className="hover:bg-gray-200/70 font-sm px-4 py-2 text-black border border-black rounded-sm absolute left-140 top-6">
-                                        {thisSongAlreadyAdded
-                                        ? <span>"Song already in library</span>
-                                        : thisSongError
-                                            ? <span className="font-semibold text-red-500">
-                                                "Edge case song... cannot be added to library"
-                                            </span>
-                                            : thisSongAdded 
-                                                ? <span>
-                                                    Song successfully added!
-                                                </span>
-                                                : <span>
-                                                    + add {song.track_name} to library
-                                                </span>
-                                            
-                                        }
-                                        </button>
-                                      </form>
+                            return <div className="relative" key={i}>
+                                <form className="relative"
+                                action={async () => {
+                                    console.log("clicked");
+                                    handleAdd(song);
+                                    }}
+                                    >
+                                    {/* Bookmark icon */}
+                                    <button type="submit" className="font-sm px-4 py-2 text-black absolute left-140 top-6">
+                                    {thisSongAlreadyAdded
+                                    ? <span>"Song already in library</span>
+                                    : thisSongError
+                                        ? <span className="font-semibold text-red-500">
+                                            "Edge case song... error be added to library"
+                                        </span>
+                                        : 
+                                        <Bookmark 
+                                            strokeWidth={1.5}
+                                            className={`${thisSongAdded ? "fill-yellow-500" : "none"} -translate-y-3 h-10 w-10 text-medium hover:fill-yellow-500 hover:scale-110 transition ease-in-out duration-100`}/>  
+                                    }
+                                    </button>
+                                </form>
                                 <MusicCard
                                 songName={song.track_name}
                                 artistName={song.artist_name}
                                 albumName={song.album_name}
                                 imageUrl={song.album_image} 
+                                className="relative"
                                 />
-                                {/* Spotify export button */}
-                                <div className="group/tooltip relative top-4 left-4 rounded-full">
-                                <SpotifyExportButton songId={song.id}
-                                    iconSize="h-5 w-5"
-                                    className="peer opacity-0 absolute hover:text-green-500/90 transition-all duration-300 ease-in-out group-hover:opacity-100" />
-                                {/* Export tooltip */}
-                                <span className="absolute right-20 top-4 opacity-0 -translate-y-4 translate-x-1 peer-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md peer-hover:delay-400">
-                                    Open in Spotify
-                                </span>
+                                {/* Spotify export icon + tooltip */}
+                                <div className="group absolute top-4 left-4 rounded-full bg-neutral-200 h-10 w-10">
+                                    <SpotifyExportButton songId={song.spotify_id}
+                                        iconSize="h-10 w-10"
+                                        className="-translate-y-4 hover:scale-110 top-4 peer opacity-100 absolute hover:text-green-500/90 transition-all duration-100 ease-in-out group-hover:opacity-100" />
+                                    {/* Export tooltip */}
+                                    <span className="absolute right-20 top-4 opacity-0 -translate-y-4 translate-x-1 peer-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md peer-hover:delay-400">
+                                        Open in Spotify
+                                    </span>
                                 </div>
-                            </React.Fragment>
+                            </div>
                         }
-                        )}
+                    )}
                     </div>
                 ))}
-                <form className="mb-auto mt-1" onSubmit={handleSubmit}>
-                <div className="w-7/10 text-center mt-60 ml-70 mb-10">
-                    <FieldLabel className="pt-5 pb-2"></FieldLabel>
-                <ButtonGroup className="mb-2">
+            </main>
+
+            {/* SEARCH BAR */}
+            <footer className="fixed shadow-[0_-4px_12px_rgba(0,0,0,0.08)] bottom-0 left-0 right-0 z-10 w-full border-t shadow-lg bg-white">
+                
+                {/* Mode Switcher Buttons */}
+                <ButtonGroup className="bottom-6 absolute left-50">
                     <Button type="button"
                         onClick={() => setSearchMode("song")}
                         variant={searchMode == "song" ? "default" : "secondary"}
@@ -271,19 +275,35 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                         variant={searchMode == "mood" ? "default" : "secondary"}
                     >Mood Mode</Button>
                 </ButtonGroup>
-                        <ButtonGroup className="w-full">
-                            <InputGroup className="w-6/10">
-                                <InputGroupInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} className="w-full" placeholder="Piano Man by Billy Joel..." />
+
+                <form className="w-full flex justify-center pb-4" onSubmit={handleSubmit}>
+                    {/* Centered container with a max-width */}
+                    <div className="w-full max-w-xl text-center flex flex-col ">
+                        <FieldLabel className="pb-2"></FieldLabel>
+                        
+
+                        {/* Input and Go Button Row */}
+                        <ButtonGroup className="w-full flex justify-center">
+                            <InputGroup className="flex-1 max-w-md">
+                                <InputGroupInput 
+                                    value={inputVal} 
+                                    onChange={(e) => setInputVal(e.target.value)} 
+                                    className="w-full" 
+                                    placeholder="Piano Man by Billy Joel..." 
+                                />
                             </InputGroup>
-                            <ButtonGroup>
-                                <Button type="submit" disabled={isLoading} className="hover:bg-gray-200/70"> {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"} </Button>
-                            </ButtonGroup>
+                            <Button type="submit" disabled={isLoading} className="hover:bg-gray-200/70">
+                                {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"}
+                            </Button>
                         </ButtonGroup>
-                        <FieldDescription className="pl-1 pt-2">Enter the song and or artist you want to search for</FieldDescription>
-                </div>
+
+                        <FieldDescription className="pl-12 pt-2 text-xs text-neutral-500">
+                            {/* Enter the song and or artist you want to search for */}
+                        </FieldDescription>
+                    </div>
                 </form>
-                {children}
-            </main>
+            </footer>
+            {children}
         </SidebarInset>
     </SidebarProvider>
    )
