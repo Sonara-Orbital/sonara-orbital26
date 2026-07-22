@@ -14,7 +14,7 @@ export function SpotifyExportButton({ songId, className="", iconSize }: { songId
         href={spotifyLink}
         target="_blank"
         rel="noopener noreferrer"
-        className={`${className}`}
+        className={`inline-block transition-transform duration-100 ${className}`}
     >
         {/* <ExternalLink className={iconSize} /> */}
         <FaSpotify className={iconSize} />

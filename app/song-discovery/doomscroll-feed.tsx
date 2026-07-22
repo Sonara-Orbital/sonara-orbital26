@@ -154,28 +154,42 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
                     <div className="absolute flex right-4 gap-2">
                         
                         {/* Export to spotify button */}
-                        <SpotifyExportButton 
-                            songId={song.song_id} 
-                            className="peer opacity-100 hover:text-green-500/90 hover:opacity-100 opacity-80 hover:scale-110"
-                            iconSize="w-9 h-9"/>
+                        <div className="group relative p-1">
+                            <SpotifyExportButton 
+                                songId={song.song_id} 
+                                className="-translate-y-1 transition-transform opacity-100 hover:text-green-500/90 hover:opacity-100 opacity-80 group-hover:scale-110"
+                                iconSize="w-10 h-10"
+                                /> 
+                                {/* tooltip */}
+                            <span className="pointer-events-none absolute right-20 top-3 opacity-0 -translate-y-4 translate-x-6 group-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md group-hover:delay-400">
+                                Open in Spotify
+                            </span>
+                        </div>
                         
                         {/* Add to library button, BOOKMARK ICON*/}
-                        <button className="hover:opacity-100 opacity-80 hover:scale-110"
-                            onClick={async () => {
-                                const {success} = await addSongFromId(song.song_id); 
-                                console.log("adding");
-                                const songKey = `${song.title}-${song.artist}`;
-                                setAlreadyAdded(prev => ({...prev, [songKey]: true}));
-                                if (!success) {
-                                    console.log("CANT ADD");
-                                }
-                        }}>
-                            <Bookmark className={`w-9 h-9 hover:fill-yellow-500 hover:outline-yellow-500 
-                            ${alreadyAdded[`${song.title}-${song.artist}`] 
-                                ? "fill-yellow-500"
-                                : "none"}`}
-                            />
-                        </button>
+                        <div className="group relative">
+                            <button className="hover:opacity-100 opacity-80 hover:scale-110"
+                                onClick={async () => {
+                                    const {success} = await addSongFromId(song.song_id); 
+                                    console.log("adding");
+                                    const songKey = `${song.title}-${song.artist}`;
+                                    setAlreadyAdded(prev => ({...prev, [songKey]: true}));
+                                    if (!success) {
+                                        console.log("CANT ADD");
+                                    }
+                            }}>
+                                <Bookmark className={`w-10 h-10 hover:fill-yellow-500 hover:outline-yellow-500 transition-transform duration-100
+                                ${alreadyAdded[`${song.title}-${song.artist}`] 
+                                    ? "fill-yellow-500"
+                                    : "none"}`}
+                                />
+                            </button>
+
+                            {/* tooltip */}
+                            <span className="pointer-events-none absolute right-20 top-3 opacity-0 translate-y-8 translate-x-20 group-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md group-hover:delay-400">
+                                Save to Library
+                            </span>
+                        </div>
                         
                     </div>
 
