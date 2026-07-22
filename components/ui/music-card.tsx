@@ -13,7 +13,7 @@ export function MusicCard({ songName, albumName, artistName, imageUrl, className
         <Card className="relative mx-auto my-5 ml-30 w-full max-w-sm pt-0">
             <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
                 <img 
-                    src={imageUrl}
+                    src={imageUrl ? imageUrl : "none"}
                     alt="Album Cover"
                     className="relative z-20 aspect-video w-full object-cover"
                 />

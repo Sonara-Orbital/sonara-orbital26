@@ -8,7 +8,7 @@ import json, ast, os, joblib, spotipy
 import musicbrainzngs as mbn
 import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
-from mood_recommender import router as recommend_router
+
 from database import supabase  # Client created in database.py
 from fastapi.middleware.cors import CORSMiddleware
 from mood_to_vector_converter import convert_user_mood_to_vector
@@ -72,6 +72,7 @@ def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) 
 
 
 # MAIN RECOMMENDER FUNCTION #
+# Return list of objects, each song object has id and track_name
 def recommender(song_name: str, artist_name="") -> list[str]:
     if (artist_name==""):
         song = supabase.table("Songs").select("id").ilike("track_name", song_name).execute().data
@@ -79,8 +80,7 @@ def recommender(song_name: str, artist_name="") -> list[str]:
         song = supabase.table("Songs").select("id").ilike("artist_name", artist_name).ilike("track_name", song_name).execute().data
 
     if not song:
-        results = ["no song found"]
-        return results
+        return []
     
     song_id = song[0]["id"]
     #print(distances)
@@ -97,18 +97,30 @@ def recommender(song_name: str, artist_name="") -> list[str]:
     #     print(song_name)
     #     song_results.append(song_name)
 
-    records = supabase.table("Songs").select("track_name", "artist_name").in_("id", results).execute().data
-    song_results = [record["track_name"] for record in records]
+    records = supabase.table("Songs").select("track_name", "artist_name", "id").in_("id", results).execute().data
+    song_results = [
+        {
+            "spotify_id": song["id"],
+            "track_name": song["track_name"]
+        }  for song in records]
+    print("SONG RES", song_results)
     
     #print(song_results)
     
     return song_results
 #print(recommender("radioactive", "Imagine Dragons"))
 
+# RECOMMENDER ENDPOINT
 @app.post("/api/process")
 async def recommend_song(inputData: DataInput):
     try:
-        result = recommender(inputData.songName, inputData.artistName)
+        recommender_res = recommender(inputData.songName, inputData.artistName)
+        result = [
+        {
+            "spotify_id": song["spotify_id"],
+            "track_name": song["track_name"]
+        } 
+        for song in recommender_res]
         return {"status": "success", "data": result}
     except Exception as e:
         return {"status": "error", "message": str(e)}
@@ -196,18 +208,19 @@ class scrollerInput(BaseModel):
 
 @app.post("/api/scroller-pool")
 async def recommend_song_scroller(inputData: scrollerInput):
-    try:
-        result = scroller_recommender(inputData.user_id, inputData.blackListIds)
-        print("SCROLLER RESULT", result)
-        return {"status": "success", "data": result}
-    except ValueError as e: 
-        print("Error:", e)
-        return {"status": "empty library error", "message": "Start adding songs to get recommendations"}
+    result = scroller_recommender(inputData.user_id, inputData.blackListIds)
+    print("INPUT", inputData.user_id)
+    print("RESULT", result)
+    return {"status": "success", "data": result}
+
+
+
 
 ####### MOOD RECOMMENDER ENDPOINT #########
 class MoodInput(BaseModel):
     moodPrompt: str
 
+# Returns list of objects, each object has spotify_id and track_name
 @app.post("/api/mood")
 async def get_mood_recommendations(InputMood: MoodInput):
     mood_input = InputMood.moodPrompt
@@ -218,7 +231,13 @@ async def get_mood_recommendations(InputMood: MoodInput):
     neighbour_ids = get_neighbours_by_vector(mood_vector, song_id=None)[:20] 
     random_neighbour_ids = random.sample(neighbour_ids, min(len(neighbour_ids), 5))
     records = supabase.table("Songs").select("track_name", "artist_name").in_("id", random_neighbour_ids).execute().data
-    song_results = [record["track_name"] for record in records]
+    song_results = [
+        {
+            "spotify_id": song["id"],
+            "track_name": song["track_name"]
+        } 
+        for song in records]
+    
     return {"status": "success", "data": song_results}
 
     

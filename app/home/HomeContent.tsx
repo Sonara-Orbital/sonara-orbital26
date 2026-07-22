@@ -13,7 +13,8 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { POST } from "@/app/api/chat/route"
 import { MusicCard } from "@/components/ui/music-card";
 import { ChatCard } from "@/components/ui/text-chat-card";
-import { addSong, addSongFromTitleArtist } from "@/actions/songs";
+import { addSong, addSongFromId } from "@/actions/songs";
+import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
 
 interface HomeContentProps {    
     userMetadata: any;
@@ -26,6 +27,7 @@ interface Song {
     album_name: string;
     album_image: string;
     track_preview: string;
+    spotify_id: string;
 }
 
 interface Turn {
@@ -33,6 +35,12 @@ interface Turn {
     songs: Song[] | null;
     isLoading: boolean;
     error?: string | null;
+}
+
+// Song object returned by recommender backend on fastAPI
+interface PartialSong {
+    spotify_id: string;
+    track_name: string;
 }
 
 
@@ -45,7 +53,6 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     const [isLoading, setIsLoading] = useState(false);
 
     const username = userMetadata.username 
-    console.log(userMetadata)
 
     // Search mode is either "song" or "mood"
     const [searchMode, setSearchMode] = useState("song");
@@ -83,7 +90,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             let res;
             // SEARCH IN SONG MODE
             if (searchMode == "song") {
-                const track = await searchSingleSong(inputVal);
+                const track = await searchSingleSong(inputVal);  // searchSingleSong to get artist and track name
                 const songName = track.track_name;
                 const artistName = track.artist_name
                 console.log(songName, artistName);
@@ -98,6 +105,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                         artistName
                     })
                 });
+                console.log("RES", res)
             // SEARCH IN MOOD MODE
             } else if (searchMode == "mood") {
                 console.log("FETCHING MOOD")
@@ -113,8 +121,39 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
             if (!res?.ok) {console.log("not ok")}
 
-            const songData = await res?.json();
-            const fetchPromises = await songData.data?.map((songNamer: string) => searchSingleSong(songNamer));
+            const rawData = await res?.json();
+            const songData: PartialSong[] = Array.isArray(rawData) ? rawData : (rawData?.data || []);
+            console.log("SONG DATA", rawData);
+
+            // const fetchPromises = await songData.data?.map((songNamer: string) => searchSingleSong(songNamer));
+
+            // searchSingleSong to get the album_image (need it to display image)
+            const fetchPromises = songData.map(async (partialSong): Promise<Song> => {
+                try {
+                    const itunesData = await searchSingleSong(partialSong.track_name)
+
+                    // Preserve partialSong's spotify id and track name
+                    return {
+                        spotify_id: partialSong.spotify_id,
+                        track_name: partialSong.track_name,
+                        artist_name: itunesData.artist_name || "",
+                        album_name: itunesData.album_name || "",
+                        album_image: itunesData.album_image || "",
+                        track_preview: itunesData.track_preview || "",
+                    };
+                } catch (error) {
+                    console.error(`Failed to fetch song: ${partialSong.track_name}`)
+                    return {
+                        spotify_id: partialSong.spotify_id,
+                        track_name: partialSong.track_name,
+                        artist_name: "",
+                        album_name: "",
+                        album_image: "",
+                        track_preview: "",
+                    };
+                }
+            })
+
             const results: Song[] = await Promise.all(fetchPromises);
 
             setTurns(prev => prev.map((turn, i) => 
@@ -143,7 +182,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     
     const handleAdd = async (song: Song) => {
         const songKey = `${song.track_name}-${song.artist_name}`;
-        const {success, error: e} = await addSongFromTitleArtist(song.track_name, song.artist_name);
+        const {success, error: e} = await addSongFromId(song.spotify_id);
         console.log("THE ERROR IS", e, success);
         if (e == "Song already in library") {
             setAlreadyAdded(prev => ({...prev, [songKey]: true}));
@@ -166,7 +205,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                         <ChatCard value={turn.userInput} />
                         {/* Display error message if db error */}
                         {turn.error && (<div className="bg-red-100 bg-destructive/15 w-fit p-2 border !border-black border-destructive/15">{turn.error}</div>)}
-                        {turn.isLoading ? <Loader2 className="animate-spin ml-10"/> :
+                        {turn.isLoading ? <div className="flex items-center gap-2"><Loader2 className="animate-spin ml-10"/>Recommending...</div> :
                         (turn.songs ?? []).map((song, i) => {
                             const songKey = `${song.track_name}-${song.artist_name}`;
                             const thisSongError = !!edgeCaseErrors[songKey];
@@ -204,6 +243,16 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                 albumName={song.album_name}
                                 imageUrl={song.album_image} 
                                 />
+                                {/* Spotify export button */}
+                                <div className="group/tooltip relative top-4 left-4 rounded-full">
+                                <SpotifyExportButton songId={song.id}
+                                    iconSize="h-5 w-5"
+                                    className="peer opacity-0 absolute hover:text-green-500/90 transition-all duration-300 ease-in-out group-hover:opacity-100" />
+                                {/* Export tooltip */}
+                                <span className="absolute right-20 top-4 opacity-0 -translate-y-4 translate-x-1 peer-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md peer-hover:delay-400">
+                                    Open in Spotify
+                                </span>
+                                </div>
                             </React.Fragment>
                         }
                         )}
