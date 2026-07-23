@@ -34,9 +34,9 @@ export async function ScrollRecommender(blackListIds: string[]) {
 
     const excludeIds = [...new Set([...(blackListIds ?? []), ...seenIds, ...libraryIds])];
 
-    // Future speed improvement: modify recommender function to perform recommendation on song list without excluded id's
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
     try {
-        const recommenderRes = await fetch("http://localhost:8000/api/scroller-pool", {
+        const recommenderRes = await fetch(`${API_URL}/scroller-pool`, {
             method: "POST",
             headers: {"Content-Type": "application/json" },
             body: JSON.stringify({ 
@@ -45,10 +45,10 @@ export async function ScrollRecommender(blackListIds: string[]) {
             })
         });
         
-        // if (!recommenderRes.ok) {
-        //     console.error(" Error fetching result");
-        //     return { sucess: false, error: "Error fetching result"};
-        // }
+        if (!recommenderRes.ok) {
+            console.error(" Error fetching result");
+            return { sucess: false, error: "Error fetching result"};
+        }
 
         // nextSongBatch is an array of SimpleSongs's
         const nextSongBatch = await recommenderRes.json();
