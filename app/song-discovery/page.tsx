@@ -5,7 +5,8 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { POST } from "@/app/api/chat/route";
 import { SimpleSong } from "@/types/song";
-
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { HomeSidebar } from "@/components/ui/home-sidebar";
 
 export const dynamic = "force-dynamic";
 
@@ -32,16 +33,15 @@ export default async function SongDiscoveryPage() {
 
     console.log("RECENT SONGS", recentSongs);
 
-    return <main className="flex min-h-screen flex-col items-center bg-gray-50">
-        {/* BACK BUTTON */}
-        <Link href="/home" className="hover:text-blue-500 top-4 left-4 absolute">  
-            &lt; <span className="hover:underline"> back </span>
-        </Link>
-
-        {/* SCROLLER */}
-        <div className="mt-8 h-[85vh] w-full max-w-2xl rounded-2xl bg-blue-300/60 p-4 shadow-inner">
-            <DoomscrollFeed currentSongs={recentSongs || []}></DoomscrollFeed>
-        </div>
-        
-    </main>
+        return <main className="flex min-h-screen items-center bg-gray-50">
+            <SidebarProvider>
+            <HomeSidebar username={currUser.user_metadata.username} />
+            <SidebarInset className="fixed items-center">
+                {/* SCROLLER */}
+                <div className="fixed mt-8 h-[85vh] w-full max-w-2xl rounded-2xl bg-blue-300/60 p-4">
+                    <DoomscrollFeed currentSongs={recentSongs || []}></DoomscrollFeed>
+                </div>
+            </SidebarInset>
+            </SidebarProvider>
+        </main>
 }

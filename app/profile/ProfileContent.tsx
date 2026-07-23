@@ -44,7 +44,7 @@ export default function ProfileContent({ userProfile, friendsList, requestsList,
 
     return (
         <SidebarProvider>
-            <HomeSidebar username={username} />
+            <HomeSidebar username={username} className=""/>
                 <SidebarInset>
                     <div className="flex flex-row w-full">
                         <div className="w-[70%]">

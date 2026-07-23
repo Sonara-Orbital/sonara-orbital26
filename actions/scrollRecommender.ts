@@ -45,16 +45,19 @@ export async function ScrollRecommender(blackListIds: string[]) {
             })
         });
         
-        if (!recommenderRes.ok) {
-            console.error(" Error fetching result");
-            return { sucess: false, error: "Error fetching result"};
-        }
+        // if (!recommenderRes.ok) {
+        //     console.error(" Error fetching result");
+        //     return { sucess: false, error: "Error fetching result"};
+        // }
 
         // nextSongBatch is an array of SimpleSongs's
         const nextSongBatch = await recommenderRes.json();
         
         // Return res
-        if (nextSongBatch.status == "success") {
+        console.log(nextSongBatch, "NEXT SONG BATCH");
+        if (nextSongBatch.status == "empty library error") {
+            return { sucess: false, error: "empty library error" };
+        } else if (nextSongBatch.status == "success") {
             console.log("recommended songs: .....", nextSongBatch);
             return nextSongBatch;
         } else {
