@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
-from database import client
+from .database import client
 
 router = APIRouter()
 

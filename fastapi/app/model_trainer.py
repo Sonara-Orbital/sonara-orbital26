@@ -4,7 +4,7 @@ from sklearn.neighbors import NearestNeighbors
 from supabase import create_client, Client
 from fastapi import FastAPI
 import numpy as np
-from database import supabase
+from .database import supabase
 
 app = FastAPI()
 
