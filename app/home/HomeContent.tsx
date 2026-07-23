@@ -263,10 +263,11 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             </main>
 
             {/* SEARCH BAR AND MODE SWITCHER*/}
-            <footer className="fixed bottom-0 z-10 w-full border-t shadow-lg bg-white p-3 pl-40">
-                <div className="flex">
-                    {/* Mode Switcher Buttons */}
-                    <ButtonGroup className="relative -bottom-3 left-8">
+            <footer className="fixed bottom-0 right-0 z-10 left-0 md:left-[var(--sidebar-width)] border-t shadow-lg bg-white p-3">
+                <div className="flex flex-col md:flex-row items-center gap-2 max-w-5xl mx-auto w-full px-4">
+                    
+                    {/* Mode Switcher buttons */}
+                    <ButtonGroup className="shrink-0">
                         <Button type="button"
                             onClick={() => setSearchMode("song")}
                             variant={searchMode == "song" ? "default" : "secondary"}
@@ -279,36 +280,25 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                         >Mood Mode</Button>
                     </ButtonGroup>
 
-                    <form className="w-full flex max-w-3xl justify-center pb-4" onSubmit={handleSubmit}>
-                        <div className="w-full text-center flex flex-col ">
-                            <FieldLabel className="pb-2"></FieldLabel>
-
-                            {/* Search bar and Go Button */}
-                            <ButtonGroup className="w-full flex justify-center">
-                                <InputGroup className="flex-1 max-w-xl">
-                                    <InputGroupInput 
-                                        value={inputVal} 
-                                        onChange={(e) => setInputVal(e.target.value)} 
-                                        className="w-full placeholder:text-neutral-900/80 shadow-md" 
-                                        placeholder={searchMode=="song" 
-                                            ? "Piano Man by Billy Joel..." 
-                                            : (searchMode=="mood" ? "Late night drive through the city..."
-                                                :""
-                                            )}
-                                    />
-                                </InputGroup>
-                                <Button type="submit" disabled={isLoading} className="hover:bg-neutral-700/70">
-                                    {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"}
-                                </Button>
-                            </ButtonGroup>
-
-                            {/* <FieldDescription className="pt-3 text-xs text-neutral-600/90 text-center">
-                                {searchMode=="song"
-                                    ? "Enter song and artist to find similar songs!"
-                                    : "What kind of vibe are you looking for?"}
-                            </FieldDescription> */}
-                        </div>
+                    {/* Search bar and go button */}
+                    <form className="w-full flex-1 flex justify-center" onSubmit={handleSubmit}>
+                        <ButtonGroup className="w-full flex justify-center max-w-xl">
+                            <InputGroup className="flex-1">
+                                <InputGroupInput 
+                                    value={inputVal} 
+                                    onChange={(e) => setInputVal(e.target.value)} 
+                                    className="w-full placeholder:text-neutral-900/80 shadow-md" 
+                                    placeholder={searchMode=="song" 
+                                        ? "Piano Man by Billy Joel..." 
+                                        : "Late night drive through the city..."}
+                                />
+                            </InputGroup>
+                            <Button type="submit" disabled={isLoading} className="hover:bg-neutral-700/70">
+                                {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"}
+                            </Button>
+                        </ButtonGroup>
                     </form>
+
                 </div>
             </footer>
             {children}
