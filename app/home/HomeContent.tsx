@@ -13,7 +13,9 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { POST } from "@/app/api/chat/route"
 import { MusicCard } from "@/components/ui/music-card";
 import { ChatCard } from "@/components/ui/text-chat-card";
-import { addSong, addSongFromTitleArtist } from "@/actions/songs";
+import { addSong, addSongFromId } from "@/actions/songs";
+import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
+import { Bookmark } from "lucide-react";
 
 interface HomeContentProps {    
     userMetadata: any;
@@ -26,6 +28,7 @@ interface Song {
     album_name: string;
     album_image: string;
     track_preview: string;
+    spotify_id: string;
 }
 
 interface Turn {
@@ -33,6 +36,13 @@ interface Turn {
     songs: Song[] | null;
     isLoading: boolean;
     error?: string | null;
+}
+
+// Song object returned by recommender backend on fastAPI
+interface PartialSong {
+    spotify_id: string;
+    track_name: string;
+    artist_name: string;
 }
 
 
@@ -45,7 +55,6 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     const [isLoading, setIsLoading] = useState(false);
 
     const username = userMetadata.username 
-    console.log(userMetadata)
 
     // Search mode is either "song" or "mood"
     const [searchMode, setSearchMode] = useState("song");
@@ -83,7 +92,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             let res;
             // SEARCH IN SONG MODE
             if (searchMode == "song") {
-                const track = await searchSingleSong(inputVal);
+                const track = await searchSingleSong(inputVal);  // searchSingleSong to get artist and track name
                 const songName = track.track_name;
                 const artistName = track.artist_name
                 console.log(songName, artistName);
@@ -98,6 +107,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                         artistName
                     })
                 });
+                console.log("RES", res)
             // SEARCH IN MOOD MODE
             } else if (searchMode == "mood") {
                 console.log("FETCHING MOOD")
@@ -113,8 +123,39 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
             if (!res?.ok) {console.log("not ok")}
 
-            const songData = await res?.json();
-            const fetchPromises = await songData.data?.map((songNamer: string) => searchSingleSong(songNamer));
+            const rawData = await res?.json();
+            const songData: PartialSong[] = Array.isArray(rawData) ? rawData : (rawData?.data || []);
+            console.log("SONG DATA", rawData);
+
+            // const fetchPromises = await songData.data?.map((songNamer: string) => searchSingleSong(songNamer));
+
+            // searchSingleSong to get the album_image (need it to display image)
+            const fetchPromises = songData.map(async (partialSong): Promise<Song> => {
+                try {
+                    const itunesData = await searchSingleSong(partialSong.track_name)
+                    console.log("SONG", partialSong)
+                    // Preserve partialSong's spotify id and track name
+                    return {
+                        spotify_id: partialSong.spotify_id,
+                        track_name: partialSong.track_name,
+                        artist_name: partialSong.artist_name,
+                        album_name: itunesData.album_name || "",
+                        album_image: itunesData.album_image || "",
+                        track_preview: itunesData.track_preview || "",
+                    };
+                } catch (error) {
+                    console.error(`Failed to fetch song: ${partialSong.track_name}`)
+                    return {
+                        spotify_id: partialSong.spotify_id,
+                        track_name: partialSong.track_name,
+                        artist_name: partialSong.artist_name,
+                        album_name: "",
+                        album_image: "",
+                        track_preview: "",
+                    };
+                }
+            })
+
             const results: Song[] = await Promise.all(fetchPromises);
 
             setTurns(prev => prev.map((turn, i) => 
@@ -143,7 +184,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     
     const handleAdd = async (song: Song) => {
         const songKey = `${song.track_name}-${song.artist_name}`;
-        const {success, error: e} = await addSongFromTitleArtist(song.track_name, song.artist_name);
+        const {success, error: e} = await addSongFromId(song.spotify_id);
         console.log("THE ERROR IS", e, success);
         if (e == "Song already in library") {
             setAlreadyAdded(prev => ({...prev, [songKey]: true}));
@@ -156,85 +197,121 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     }
 
    return (
-    <SidebarProvider>
-        <HomeSidebar username={username}/>
+    <SidebarProvider >
+        <HomeSidebar username={username} className="z-20"/>
         <SidebarInset>
             <div className="w-full h-10 my-5" />
-            <main className="w-full ">
+
+            {/* SONGS DISPLAY */}
+            <main className="w-full flex flex-col z-5 mb-20">
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
                         {/* Display error message if db error */}
-                        {turn.error && (<div className="bg-red-100 bg-destructive/15 w-fit p-2 border !border-black border-destructive/15">{turn.error}</div>)}
-                        {turn.isLoading ? <Loader2 className="animate-spin ml-10"/> :
+                        {turn.error && (<div className="bg-red-100 bg-destructive/15 w-fit p-2 mb-8 border !border-black border-destructive/15">{turn.error}</div>)}
+                        {turn.isLoading ? <div className="flex items-center gap-2 pb-8"><Loader2 className="animate-spin ml-10"/>Recommending...</div> :
                         (turn.songs ?? []).map((song, i) => {
                             const songKey = `${song.track_name}-${song.artist_name}`;
                             const thisSongError = !!edgeCaseErrors[songKey];
                             const thisSongAdded = !!addedSongs[songKey];
                             const thisSongAlreadyAdded = !!alreadyAdded[songKey];
 
-                            return <React.Fragment key={i}>
-                                      <form className="relative"
-                                        action={async () => {
-                                            console.log("clicked");
-                                            handleAdd(song);
-                                        }}
-                                      >
-                                        <button type="submit" className="hover:bg-gray-200/70 font-sm px-4 py-2 text-black border border-black rounded-sm absolute left-140 top-6">
-                                        {thisSongAlreadyAdded
-                                        ? <span>"Song already in library</span>
-                                        : thisSongError
-                                            ? <span className="font-semibold text-red-500">
-                                                "Edge case song... cannot be added to library"
-                                            </span>
-                                            : thisSongAdded 
-                                                ? <span>
-                                                    Song successfully added!
-                                                </span>
-                                                : <span>
-                                                    + add {song.track_name} to library
-                                                </span>
-                                            
-                                        }
-                                        </button>
-                                      </form>
+                            return <div className="relative mb-2" key={i}>
+                                <form className="relative"
+                                action={async () => {
+                                    console.log("clicked");
+                                    handleAdd(song);
+                                    }}
+                                    >
+                                    {/* Bookmark icon AND HANDLE ERROR */}
+                                    <button type="submit" className="font-sm px-4 py-2 text-black absolute left-140 top-6">
+                                    {thisSongAlreadyAdded
+                                    ? <span>"Song already in library</span>
+                                    : thisSongError
+                                        ? <span className="font-semibold text-red-500">
+                                            "Edge case song... error be added to library"
+                                        </span>
+                                        : 
+                                        <Bookmark 
+                                            strokeWidth={1.5}
+                                            className={`${thisSongAdded ? "fill-yellow-500" : "none"} -translate-y-3 h-10 w-10 text-medium hover:fill-yellow-500 hover:scale-110 transition ease-in-out duration-100`}/>  
+                                    }
+                                    </button>
+                                </form>
                                 <MusicCard
                                 songName={song.track_name}
                                 artistName={song.artist_name}
                                 albumName={song.album_name}
                                 imageUrl={song.album_image} 
+                                className="relative"
                                 />
-                            </React.Fragment>
+                                {/* Spotify export icon + tooltip */}
+                                <div className="group absolute top-4 left-4 rounded-full bg-neutral-200 h-10 w-10">
+                                    <SpotifyExportButton songId={song.spotify_id}
+                                        iconSize="h-10 w-10"
+                                        className="-translate-y-4 hover:scale-110 top-4 peer opacity-100 absolute hover:text-green-500/90 transition-all duration-100 ease-in-out group-hover:opacity-100" />
+                                    {/* Export tooltip */}
+                                    <span className="absolute right-20 top-4 opacity-0 -translate-y-4 translate-x-1 peer-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md peer-hover:delay-400">
+                                        Open in Spotify
+                                    </span>
+                                </div>
+                            </div>
                         }
-                        )}
+                    )}
                     </div>
                 ))}
-                <form className="mb-auto mt-1" onSubmit={handleSubmit}>
-                <div className="w-7/10 text-center mt-60 ml-70 mb-10">
-                    <FieldLabel className="pt-5 pb-2"></FieldLabel>
-                <ButtonGroup className="mb-2">
-                    <Button type="button"
-                        onClick={() => setSearchMode("song")}
-                        variant={searchMode == "song" ? "default" : "secondary"}
-                    >Similar Song Mode</Button>
-                    <Button type="button" 
-                        onClick={() => setSearchMode("mood")}
-                        variant={searchMode == "mood" ? "default" : "secondary"}
-                    >Mood Mode</Button>
-                </ButtonGroup>
-                        <ButtonGroup className="w-full">
-                            <InputGroup className="w-6/10">
-                                <InputGroupInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} className="w-full" placeholder="Piano Man by Billy Joel..." />
-                            </InputGroup>
-                            <ButtonGroup>
-                                <Button type="submit" disabled={isLoading} className="hover:bg-gray-200/70"> {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"} </Button>
-                            </ButtonGroup>
-                        </ButtonGroup>
-                        <FieldDescription className="pl-1 pt-2">Enter the song and or artist you want to search for</FieldDescription>
-                </div>
-                </form>
-                {children}
             </main>
+
+            {/* SEARCH BAR AND MODE SWITCHER*/}
+            <footer className="fixed bottom-0 z-10 w-full border-t shadow-lg bg-white p-3 pl-40">
+                <div className="flex">
+                    {/* Mode Switcher Buttons */}
+                    <ButtonGroup className="relative -bottom-3 left-8">
+                        <Button type="button"
+                            onClick={() => setSearchMode("song")}
+                            variant={searchMode == "song" ? "default" : "secondary"}
+                            size="sm"
+                        >Similar Song Mode</Button>
+                        <Button type="button" 
+                            onClick={() => setSearchMode("mood")}
+                            variant={searchMode == "mood" ? "default" : "secondary"}
+                            size="sm"
+                        >Mood Mode</Button>
+                    </ButtonGroup>
+
+                    <form className="w-full flex max-w-3xl justify-center pb-4" onSubmit={handleSubmit}>
+                        <div className="w-full text-center flex flex-col ">
+                            <FieldLabel className="pb-2"></FieldLabel>
+
+                            {/* Search bar and Go Button */}
+                            <ButtonGroup className="w-full flex justify-center">
+                                <InputGroup className="flex-1 max-w-xl">
+                                    <InputGroupInput 
+                                        value={inputVal} 
+                                        onChange={(e) => setInputVal(e.target.value)} 
+                                        className="w-full placeholder:text-neutral-900/80 shadow-md" 
+                                        placeholder={searchMode=="song" 
+                                            ? "Piano Man by Billy Joel..." 
+                                            : (searchMode=="mood" ? "Late night drive through the city..."
+                                                :""
+                                            )}
+                                    />
+                                </InputGroup>
+                                <Button type="submit" disabled={isLoading} className="hover:bg-neutral-700/70">
+                                    {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"}
+                                </Button>
+                            </ButtonGroup>
+
+                            {/* <FieldDescription className="pt-3 text-xs text-neutral-600/90 text-center">
+                                {searchMode=="song"
+                                    ? "Enter song and artist to find similar songs!"
+                                    : "What kind of vibe are you looking for?"}
+                            </FieldDescription> */}
+                        </div>
+                    </form>
+                </div>
+            </footer>
+            {children}
         </SidebarInset>
     </SidebarProvider>
    )
