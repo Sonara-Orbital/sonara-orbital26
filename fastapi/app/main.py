@@ -101,7 +101,8 @@ def recommender(song_name: str, artist_name="") -> list[str]:
     song_results = [
         {
             "spotify_id": song["id"],
-            "track_name": song["track_name"]
+            "track_name": song["track_name"],
+            "artist_name": song["artist_name"]
         }  for song in records]
     print("SONG RES", song_results)
     
@@ -118,7 +119,8 @@ async def recommend_song(inputData: DataInput):
         result = [
         {
             "spotify_id": song["spotify_id"],
-            "track_name": song["track_name"]
+            "track_name": song["track_name"],
+            "artist_name": song["artist_name"]
         } 
         for song in recommender_res]
         return {"status": "success", "data": result}

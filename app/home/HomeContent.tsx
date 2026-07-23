@@ -42,6 +42,7 @@ interface Turn {
 interface PartialSong {
     spotify_id: string;
     track_name: string;
+    artist_name: string;
 }
 
 
@@ -132,12 +133,12 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             const fetchPromises = songData.map(async (partialSong): Promise<Song> => {
                 try {
                     const itunesData = await searchSingleSong(partialSong.track_name)
-
+                    console.log("SONG", partialSong)
                     // Preserve partialSong's spotify id and track name
                     return {
                         spotify_id: partialSong.spotify_id,
                         track_name: partialSong.track_name,
-                        artist_name: itunesData.artist_name || "",
+                        artist_name: partialSong.artist_name,
                         album_name: itunesData.album_name || "",
                         album_image: itunesData.album_image || "",
                         track_preview: itunesData.track_preview || "",
@@ -147,7 +148,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                     return {
                         spotify_id: partialSong.spotify_id,
                         track_name: partialSong.track_name,
-                        artist_name: "",
+                        artist_name: partialSong.artist_name,
                         album_name: "",
                         album_image: "",
                         track_preview: "",
@@ -202,7 +203,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             <div className="w-full h-10 my-5" />
 
             {/* SONGS DISPLAY */}
-            <main className="w-full flex flex-col z-5 mb-16">
+            <main className="w-full flex flex-col z-5 mb-20">
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
@@ -261,50 +262,54 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 ))}
             </main>
 
-            {/* SEARCH BAR */}
-            <footer className="fixed shadow-[0_-4px_12px_rgba(0,0,0,0.08)] bottom-0 left-0 right-0 z-10 w-full border-t shadow-lg bg-white">
-                
-                {/* Mode Switcher Buttons */}
-                <ButtonGroup className="bottom-6 absolute left-50">
-                    <Button type="button"
-                        onClick={() => setSearchMode("song")}
-                        variant={searchMode == "song" ? "default" : "secondary"}
-                    >Similar Song Mode</Button>
-                    <Button type="button" 
-                        onClick={() => setSearchMode("mood")}
-                        variant={searchMode == "mood" ? "default" : "secondary"}
-                    >Mood Mode</Button>
-                </ButtonGroup>
+            {/* SEARCH BAR AND MODE SWITCHER*/}
+            <footer className="fixed bottom-0 z-10 w-full border-t shadow-lg bg-white p-3 pl-40">
+                <div className="flex">
+                    {/* Mode Switcher Buttons */}
+                    <ButtonGroup className="relative -bottom-3 left-8">
+                        <Button type="button"
+                            onClick={() => setSearchMode("song")}
+                            variant={searchMode == "song" ? "default" : "secondary"}
+                            size="sm"
+                        >Similar Song Mode</Button>
+                        <Button type="button" 
+                            onClick={() => setSearchMode("mood")}
+                            variant={searchMode == "mood" ? "default" : "secondary"}
+                            size="sm"
+                        >Mood Mode</Button>
+                    </ButtonGroup>
 
-                <form className="w-full flex justify-center pb-4" onSubmit={handleSubmit}>
-                    <div className="w-full max-w-xl text-center flex flex-col ">
-                        <FieldLabel className="pb-2"></FieldLabel>
-                        
+                    <form className="w-full flex max-w-3xl justify-center pb-4" onSubmit={handleSubmit}>
+                        <div className="w-full text-center flex flex-col ">
+                            <FieldLabel className="pb-2"></FieldLabel>
 
-                        {/* Text bar and Go Button */}
-                        <ButtonGroup className="w-full flex justify-center">
-                            <InputGroup className="flex-1 max-w-md">
-                                <InputGroupInput 
-                                    value={inputVal} 
-                                    onChange={(e) => setInputVal(e.target.value)} 
-                                    className="w-full" 
-                                    placeholder={searchMode=="song" 
-                                        ? "Piano Man by Billy Joel..." 
-                                        : (searchMode=="mood" ? "Late night drive through the city..."
-                                            :"none"
-                                        )}
-                                />
-                            </InputGroup>
-                            <Button type="submit" disabled={isLoading} className="hover:bg-neutral-700/70">
-                                {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"}
-                            </Button>
-                        </ButtonGroup>
+                            {/* Search bar and Go Button */}
+                            <ButtonGroup className="w-full flex justify-center">
+                                <InputGroup className="flex-1 max-w-xl">
+                                    <InputGroupInput 
+                                        value={inputVal} 
+                                        onChange={(e) => setInputVal(e.target.value)} 
+                                        className="w-full placeholder:text-neutral-900/80 shadow-md" 
+                                        placeholder={searchMode=="song" 
+                                            ? "Piano Man by Billy Joel..." 
+                                            : (searchMode=="mood" ? "Late night drive through the city..."
+                                                :""
+                                            )}
+                                    />
+                                </InputGroup>
+                                <Button type="submit" disabled={isLoading} className="hover:bg-neutral-700/70">
+                                    {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"}
+                                </Button>
+                            </ButtonGroup>
 
-                        <FieldDescription className="pl-12 pt-2 text-xs text-neutral-500">
-                            {/* Enter the song and or artist you want to search for */}
-                        </FieldDescription>
-                    </div>
-                </form>
+                            {/* <FieldDescription className="pt-3 text-xs text-neutral-600/90 text-center">
+                                {searchMode=="song"
+                                    ? "Enter song and artist to find similar songs!"
+                                    : "What kind of vibe are you looking for?"}
+                            </FieldDescription> */}
+                        </div>
+                    </form>
+                </div>
             </footer>
             {children}
         </SidebarInset>
