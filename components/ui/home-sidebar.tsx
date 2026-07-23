@@ -15,7 +15,7 @@ import {
 
 interface SidebarProps {
   username: string
-  className: string
+  className?: string
 }
 
 // Menu items.
