@@ -35,8 +35,10 @@ export async function ScrollRecommender(blackListIds: string[]) {
     const excludeIds = [...new Set([...(blackListIds ?? []), ...seenIds, ...libraryIds])];
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    console.log("API URL", API_URL)
+    console.log(`${API_URL}/scroller-pool`)
     try {
-        const recommenderRes = await fetch(`${API_URL}/scroller-pool`, {
+        const recommenderRes = await fetch(`${API_URL}/api/scroller-pool`, {
             method: "POST",
             headers: {"Content-Type": "application/json" },
             body: JSON.stringify({ 
