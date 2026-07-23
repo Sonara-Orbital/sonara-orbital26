@@ -7,8 +7,6 @@ import { FaSpotify } from "react-icons/fa";
 // iconSize input is a string "h-x w-y", x and y are horizontal and vertical dimensions
 export function SpotifyExportButton({ songId, className="", iconSize }: { songId: string; className?: string; iconSize: string }) {
     const spotifyLink = `https://open.spotify.com/track/${songId}`;
-    console.log("ID is", songId);
-    console.log("SPOTIFY LINK IS", spotifyLink);
 
     return <a
         href={spotifyLink}
