@@ -202,27 +202,27 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             <div className="w-full h-10 my-5" />
 
             {/* SONGS DISPLAY */}
-            <main className="w-full flex flex-col grid grid-cols-2 z-5 mb-16">
+            <main className="w-full flex flex-col z-5 mb-16">
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
                         {/* Display error message if db error */}
-                        {turn.error && (<div className="bg-red-100 bg-destructive/15 w-fit p-2 border !border-black border-destructive/15">{turn.error}</div>)}
-                        {turn.isLoading ? <div className="flex items-center gap-2"><Loader2 className="animate-spin ml-10"/>Recommending...</div> :
+                        {turn.error && (<div className="bg-red-100 bg-destructive/15 w-fit p-2 mb-8 border !border-black border-destructive/15">{turn.error}</div>)}
+                        {turn.isLoading ? <div className="flex items-center gap-2 pb-8"><Loader2 className="animate-spin ml-10"/>Recommending...</div> :
                         (turn.songs ?? []).map((song, i) => {
                             const songKey = `${song.track_name}-${song.artist_name}`;
                             const thisSongError = !!edgeCaseErrors[songKey];
                             const thisSongAdded = !!addedSongs[songKey];
                             const thisSongAlreadyAdded = !!alreadyAdded[songKey];
 
-                            return <div className="relative" key={i}>
+                            return <div className="relative mb-2" key={i}>
                                 <form className="relative"
                                 action={async () => {
                                     console.log("clicked");
                                     handleAdd(song);
                                     }}
                                     >
-                                    {/* Bookmark icon */}
+                                    {/* Bookmark icon AND HANDLE ERROR */}
                                     <button type="submit" className="font-sm px-4 py-2 text-black absolute left-140 top-6">
                                     {thisSongAlreadyAdded
                                     ? <span>"Song already in library</span>
@@ -277,22 +277,25 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 </ButtonGroup>
 
                 <form className="w-full flex justify-center pb-4" onSubmit={handleSubmit}>
-                    {/* Centered container with a max-width */}
                     <div className="w-full max-w-xl text-center flex flex-col ">
                         <FieldLabel className="pb-2"></FieldLabel>
                         
 
-                        {/* Input and Go Button Row */}
+                        {/* Text bar and Go Button */}
                         <ButtonGroup className="w-full flex justify-center">
                             <InputGroup className="flex-1 max-w-md">
                                 <InputGroupInput 
                                     value={inputVal} 
                                     onChange={(e) => setInputVal(e.target.value)} 
                                     className="w-full" 
-                                    placeholder="Piano Man by Billy Joel..." 
+                                    placeholder={searchMode=="song" 
+                                        ? "Piano Man by Billy Joel..." 
+                                        : (searchMode=="mood" ? "Late night drive through the city..."
+                                            :"none"
+                                        )}
                                 />
                             </InputGroup>
-                            <Button type="submit" disabled={isLoading} className="hover:bg-gray-200/70">
+                            <Button type="submit" disabled={isLoading} className="hover:bg-neutral-700/70">
                                 {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"}
                             </Button>
                         </ButtonGroup>
