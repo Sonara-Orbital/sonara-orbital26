@@ -179,14 +179,6 @@ def scroller_recommender(user_id: str, blackListIds: list[str]) -> list[SimpleSo
     blackListedSongIds = list(dict.fromkeys(blackListedSongIds))
     print("BLACKLIST_EXCLUDING_SEEDS", blackListedSongIds)
 
-    ## OPTION 1 GET ALL CANDIDATES AND RANDOMLY SELECT ##
-    # song_candidates =[]
-    # # Get neighbours of each of the 5 songs
-    # for song_id in last_five_ids:
-    #     song_candidates.exrend(get_raw_neighbours(song_id, 5))
-
-    ## OPTION 2 GENERATE AVERAGE VECTOR ## 
-    # Query 30 neighbours, filter those in blacklist
     raw_ids = get_raw_neighbours_from_pool(last_five_ids, 30, blackListedSongIds)
     resData = supabase.table("Songs").select("id", "track_name", "artist_name")\
         .in_("id", raw_ids).not_.in_("id", blackListedSongIds)\
@@ -220,7 +212,7 @@ async def recommend_song_scroller(inputData: scrollerInput):
 class MoodInput(BaseModel):
     moodPrompt: str
 
-# Returns list of objects, each object has spotify_id and track_name
+# Returns list of objects, with spotify_id, track_name, artist_name
 @app.post("/api/mood")
 async def get_mood_recommendations(InputMood: MoodInput):
     mood_input = InputMood.moodPrompt
@@ -230,11 +222,12 @@ async def get_mood_recommendations(InputMood: MoodInput):
         return {"status": "error", "message": "moodPrompt is required."}
     neighbour_ids = get_neighbours_by_vector(mood_vector, song_id=None)[:20] 
     random_neighbour_ids = random.sample(neighbour_ids, min(len(neighbour_ids), 5))
-    records = supabase.table("Songs").select("track_name", "artist_name").in_("id", random_neighbour_ids).execute().data
+    records = supabase.table("Songs").select("id", "track_name", "artist_name").in_("id", random_neighbour_ids).execute().data
     song_results = [
         {
             "spotify_id": song["id"],
-            "track_name": song["track_name"]
+            "track_name": song["track_name"],
+            "artist_name": song["artist_name"]
         } 
         for song in records]
     
