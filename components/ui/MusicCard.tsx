@@ -2,6 +2,7 @@ import { Card, CardDescription, CardTitle, CardContent } from "@/components/ui/c
 import { useState } from "react";
 import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
 import { AddToLibraryButton } from "@/components/ui/AddToLibraryButton";
+import { addSongFromId } from "@/actions/songs";
 
 interface MusicCardProps {
     songName: string,
@@ -31,7 +32,7 @@ export function MusicCard({ songName, albumName, artistName, imageUrl, className
     
                 {/* Add to library button */}
                 <div className="absolute -top-1 right-1.5 z-10">
-                    <AddToLibraryButton isAdded={isAdded} actionOnAdd={()=>{}} />
+                    <AddToLibraryButton isAdded={isAdded} actionOnAdd={()=>addSongFromId(songId)} />
                 </div>
 
                 {/* Song info */}
