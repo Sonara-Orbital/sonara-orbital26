@@ -11,7 +11,7 @@ import { FieldDescription, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { POST } from "@/app/api/chat/route"
-import { MusicCard } from "@/components/ui/music-card";
+import { MusicCard } from "@/components/ui/MusicCard";
 import { ChatCard } from "@/components/ui/text-chat-card";
 import { addSong, addSongFromId } from "@/actions/songs";
 import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
