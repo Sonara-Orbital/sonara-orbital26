@@ -293,12 +293,12 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                     <ButtonGroup className="shrink-0 z-20">
                         <Button type="button"
                             onClick={() => setSearchMode("song")}
-                            variant={searchMode == "song" ? "default" : "secondary"}
+                            variant={searchMode == "song" ? "default" : "outline"}
                             size="sm"
                         >Similar Song Mode</Button>
                         <Button type="button" 
                             onClick={() => setSearchMode("mood")}
-                            variant={searchMode == "mood" ? "default" : "secondary"}
+                            variant={searchMode == "mood" ? "default" : "outline"}
                             size="sm"
                         >Mood Mode</Button>
                     </ButtonGroup>

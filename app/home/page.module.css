@@ -115,6 +115,7 @@
   cursor: pointer;
   text-align: left;
   font-family: 'Inter', sans-serif;
+  background-color:#e9eef8;
 }
 
 .nav a:hover {
