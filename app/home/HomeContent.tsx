@@ -207,7 +207,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             <div className="w-full h-10 my-5" />
 
             {/* SONGS DISPLAY */}
-            <main className="w-full flex flex-col z-5 top-[25vh]">
+            <main className="w-full flex flex-col z-5 top-[25vh] mb-28">
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
@@ -235,9 +235,6 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                         ? <span className="font-semibold text-red-500">
                                             "Edge case song... error be added to library"
                                         </span> */}
-                                    <AddToLibraryButton isAdded={thisSongAdded} 
-                                        actionOnAdd={() => {}}
-                                        className="font-sm px-4 py-2 text-black absolute left-140 top-6"></AddToLibraryButton>
                                     {/* </button> */}
                                 </form>
                                 <MusicCard
@@ -247,12 +244,11 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                 imageUrl={song.album_image} 
                                 className="relative hover:scale-105 hover:shadow-xl transition-all ease-in-out duration-300"
                                 songId={song.spotify_id}
+                                isAdded={thisSongAdded}
+                                buttonSize={10}
                                 />
                                 {/* Spotify export icon + tooltip */}
-                                <div className="group absolute top-4 left-4 rounded-full bg-neutral-200 h-10 w-10">
-                                    <SpotifyExportButton songId={song.spotify_id}
-                                        iconSize="h-10 w-10"
-                                        className="-translate-y-4 hover:scale-110 top-4 peer opacity-100 absolute hover:text-green-500/90 transition-all duration-100 ease-in-out group-hover:opacity-100" />
+                                <div className="group absolute top-4 left-4 rounded-full h-10 w-10">
                                     {/* Export tooltip */}
                                     <span className="absolute right-20 top-4 opacity-0 -translate-y-4 translate-x-1 peer-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md peer-hover:delay-400">
                                         Open in Spotify

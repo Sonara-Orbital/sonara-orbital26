@@ -25,7 +25,7 @@ export function AddToLibraryButton({ isAdded, actionOnAdd, className }: inputInf
     return <button onClick={handleClick} type="submit" className={`${className}`}>
         <Bookmark
             strokeWidth={1.5}
-            className={`${isAdded ? "fill-yellow-500" : "none"} -translate-y-3 h-10 w-10 text-medium hover:fill-yellow-500 hover:scale-110 transition ease-in-out duration-100`}
+            className={`${isClicked ? "fill-yellow-500" : "none"} -translate-y-3 h-10 w-10 text-medium hover:fill-yellow-500 hover:scale-110 transition ease-in-out duration-100`}
         />
     </button>
 }
