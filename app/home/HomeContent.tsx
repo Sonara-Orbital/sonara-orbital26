@@ -206,14 +206,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             <div className="w-full h-10 my-5" />
 
             {/* SONGS DISPLAY */}
-            <main className="w-full flex flex-col z-5 mb-20">
-                <div className={`text-xl font-medium text-neutral-700 transition-all duration-300 text-center
-                    ${isPageEmpty 
-                        ? ""
-                        : "opacity-0 -translate-y-4"}`}
-                >
-                    Enter a prompt to start discovering songs!
-                </div>
+            <main className="w-full flex flex-col z-5 top-[25vh]">
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
@@ -272,58 +265,61 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 ))}
             </main>
 
-            {/* <div className={`transition-all duration-500 ${isPageEmpty
-                            ? "w-full absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
-                            : ""
-                        }`}> */}
-                {/* SEARCH BAR AND MODE SWITCHER*/}
-                <footer className={`fixed bottom-0 right-0 z-10 left-0 md:left-[var(--sidebar-width)] bg-white p-3 transition-all duration-700 border-t`}>
-                        {/* // ${isPageEmpty
-                        //     ? "!-translate-y-[45vh]"
-                        //     : "border-t shadow-lg"
-                        // }`}> */}
-                    <div className={`flex flex-col md:flex-row items-center gap-2 max-w-5xl mx-auto w-full px-4`}>
-                        
-                        {/* Mode Switcher buttons */}
-                        <ButtonGroup className="shrink-0">
-                            <Button type="button"
-                                onClick={() => setSearchMode("song")}
-                                variant={searchMode == "song" ? "default" : "secondary"}
-                                size="sm"
-                            >Similar Song Mode</Button>
-                            <Button type="button" 
-                                onClick={() => setSearchMode("mood")}
-                                variant={searchMode == "mood" ? "default" : "secondary"}
-                                size="sm"
-                            >Mood Mode</Button>
+
+            {/* SEARCH BAR AND MODE SWITCHER*/}
+            <footer className={`fixed bottom-0 right-0 z-10 left-0 md:left-[var(--sidebar-width)] bg-white p-3 transition-all duration-700 border-t`}>
+                <div className={`flex flex-1 flex-col md:flex-row items-center gap-2 max-w-5xl mx-auto w-full px-4 relative h-10`}>
+                    
+                    {/* Mode Switcher buttons */}
+                    <ButtonGroup className="shrink-0 z-20">
+                        <Button type="button"
+                            onClick={() => setSearchMode("song")}
+                            variant={searchMode == "song" ? "default" : "secondary"}
+                            size="sm"
+                        >Similar Song Mode</Button>
+                        <Button type="button" 
+                            onClick={() => setSearchMode("mood")}
+                            variant={searchMode == "mood" ? "default" : "secondary"}
+                            size="sm"
+                        >Mood Mode</Button>
+                    </ButtonGroup>
+
+                    {/* Search bar and go button */}
+                    <form className={`absolute left-1/2 w-full max-w-xl flex gap-20 justify-center flex-col transition-all duration-1000 ease-in-out ${
+                        isPageEmpty
+                            ? "-translate-x-1/2 -translate-y-[50vh]"
+                            : "-translate-x-[35%] translate-y-0"
+                    }`} 
+                    onSubmit={handleSubmit}>
+
+                        {/* Welcome message */}
+                        <div className={`font-sm text-center mb-2 transition-all duration-300 text-2xl ${
+                            isPageEmpty 
+                                ? "opacity-100 translate-y-0" 
+                                : "opacity-0 -translate-y-3 pointer-events-none absolute"
+                        }`}> 
+                            Start discovering songs! 
+                        </div>
+
+                        <ButtonGroup className="w-full flex justify-center">
+                            <InputGroup className="flex-1">
+                                <InputGroupInput 
+                                    value={inputVal} 
+                                    onChange={(e) => setInputVal(e.target.value)} 
+                                    className="w-full placeholder:text-neutral-900/80 rounded-lg bg-white" 
+                                    placeholder={searchMode=="song" 
+                                        ? "Piano Man by Billy Joel..." 
+                                        : "Late night drive through the city..."}
+                                />
+                            </InputGroup>
+                            <Button type="submit" disabled={isLoading} className="hover:bg-neutral-700/70">
+                                {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"}
+                            </Button>
                         </ButtonGroup>
+                    </form>
 
-                        {/* Search bar and go button */}
-                        <form className={`w-full flex-1 flex justify-center transition-all duration-500 ease-in-out
-                            ${isPageEmpty
-                                ? "!-translate-y-[45vh] -translate-x-[15vh]"
-                                : ""
-                            }`} 
-                            onSubmit={handleSubmit}>
-                            <ButtonGroup className="w-full flex justify-center max-w-xl">
-                                <InputGroup className="flex-1">
-                                    <InputGroupInput 
-                                        value={inputVal} 
-                                        onChange={(e) => setInputVal(e.target.value)} 
-                                        className="w-full placeholder:text-neutral-900/80 shadow-md" 
-                                        placeholder={searchMode=="song" 
-                                            ? "Piano Man by Billy Joel..." 
-                                            : "Late night drive through the city..."}
-                                    />
-                                </InputGroup>
-                                <Button type="submit" disabled={isLoading} className="hover:bg-neutral-700/70">
-                                    {isLoading ? (<Loader2 className="animate-spin"/>) : "Go"}
-                                </Button>
-                            </ButtonGroup>
-                        </form>
-
-                    </div>
-                </footer>
+                </div>
+            </footer>
             {/* </div> */}
             {children}
         </SidebarInset>
