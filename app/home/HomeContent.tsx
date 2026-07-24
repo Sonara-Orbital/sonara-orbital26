@@ -108,6 +108,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 );
 
                 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                console.log("API URL", API_URL)
                 res = await fetch(`${API_URL}/api/process`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json" },
