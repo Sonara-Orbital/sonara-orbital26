@@ -98,8 +98,8 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 console.log(songName, artistName);
                 console.log("gemini", songName)
                 
-                
-                res = await fetch("http://localhost:8000/api/process", {
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                res = await fetch(`${API_URL}/api/process`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json" },
                     body: JSON.stringify({ 
@@ -111,7 +111,8 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             // SEARCH IN MOOD MODE
             } else if (searchMode == "mood") {
                 console.log("FETCHING MOOD")
-                res = await fetch("http://localhost:8000/api/mood", {
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                res = await fetch(`${API_URL}/api/mood`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ moodPrompt: inputVal })

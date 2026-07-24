@@ -9,9 +9,9 @@ import musicbrainzngs as mbn
 import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from database import supabase  # Client created in database.py
+from app.database import supabase  # Client created in database.py
 from fastapi.middleware.cors import CORSMiddleware
-from mood_to_vector_converter import convert_user_mood_to_vector
+from app.mood_to_vector_converter import convert_user_mood_to_vector
 import random
 
 app = FastAPI()
@@ -20,7 +20,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "https://sonara-orbital26-git-deploy-test-sonara1.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
