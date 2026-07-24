@@ -36,6 +36,7 @@ interface Turn {
     userInput: string;
     songs: Song[] | null;
     isLoading: boolean;
+    message?: React.ReactNode | null;
     error?: string | null;
 }
 
@@ -93,14 +94,19 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
             setInputVal("");
 
             let res;
+            var promptMessage: React.ReactNode;
             // SEARCH IN SONG MODE
             if (searchMode == "song") {
                 const track = await searchSingleSong(inputVal);  // searchSingleSong to get artist and track name
                 const songName = track.track_name;
                 const artistName = track.artist_name
                 console.log(songName, artistName);
-                console.log("gemini", songName)
-                
+                console.log("SONG NAME: ", songName);
+                // setCurrentMessage(`Showing recommendations similar to ${songName} by ${artistName}`);
+                promptMessage = (
+                    <span> Fetching similar songs to <span className="font-bold text-neutral-800">{songName}</span> by <span className="font-bold text-neutral-800">{artistName}</span></span>
+                );
+
                 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
                 res = await fetch(`${API_URL}/api/process`, {
                     method: "POST",
@@ -110,7 +116,10 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                         artistName
                     })
                 });
-                console.log("RES", res)
+                console.log("RES", res);
+
+                // Add message to turns
+
             // SEARCH IN MOOD MODE
             } else if (searchMode == "mood") {
                 console.log("FETCHING MOOD")
@@ -120,10 +129,20 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ moodPrompt: inputVal })
                 });
+                promptMessage = (
+                    <span>Capturing the mood of <span className="font-semibold text-neutral-800 tracking-tight">"{inputVal}"</span>...</span>
+                );
             } else {
                 console.error("Mode not found");
                 return;
             }
+            
+            console.log("PROMPT", promptMessage);
+            setTurns(prev => prev.map((turn, i) => 
+                i === turnIndex 
+                ? {...turn, message: promptMessage}
+                : turn));
+
 
             if (!res?.ok) {console.log("not ok")}
 
@@ -204,13 +223,17 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     <SidebarProvider >
         <HomeSidebar username={username} className="z-20"/>
         <SidebarInset>
-            <div className="w-full h-10 my-5" />
+            <div className="w-full h-10 my-5 text-sm font-semibold text-neutral-600"/>
 
             {/* SONGS DISPLAY */}
             <main className="w-full flex flex-col z-5 top-[25vh] mb-28">
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
+                        
+                        {/* DISPLAY PROMPT MESSAGE */}
+                        <div className="ml-4 mt-4 mb-4 text-sm font-medium tracking-wide text-neutral-600 bg-neutral-100 rounded-md inline-block p-2">{(turn.message != "") && turn.message}</div>
+
                         {/* Display error message if db error */}
                         {turn.error && (<div className="bg-red-100 bg-destructive/15 w-fit p-2 mb-8 border !border-black border-destructive/15">{turn.error}</div>)}
                         {turn.isLoading ? <div className="flex items-center gap-2 pb-8"><Loader2 className="animate-spin ml-10"/>Recommending...</div> :

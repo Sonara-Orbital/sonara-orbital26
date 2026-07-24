@@ -35,7 +35,7 @@ export function MusicCard({ songName, albumName, artistName, imageUrl, className
                 </div>
 
                 {/* Text content */}
-                <div className="flex flex-col gap-2 pr-8 min-w-0 -translate-y-6">
+                <div className="flex flex-col gap-3 pr-8 min-w-0 -translate-y-6">
                     <a 
                         href={`https://open.spotify.com/track/${songId}`}
                         target="_blank"
