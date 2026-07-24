@@ -50,7 +50,7 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
               setIsAscending(!isAscending);
               console.log("reversed");
             }}
-            className="right-10 absolute"
+            className="right-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
           >
             {isAscending ? "Sort Most Recent" : "Sort Oldest"}
           </button>

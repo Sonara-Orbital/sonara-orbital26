@@ -16,6 +16,7 @@ import { ChatCard } from "@/components/ui/text-chat-card";
 import { addSong, addSongFromId } from "@/actions/songs";
 import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
 import { Bookmark } from "lucide-react";
+import { AddToLibraryButton } from "@/components/ui/AddToLibraryButton";
 
 interface HomeContentProps {    
     userMetadata: any;
@@ -227,19 +228,17 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                     }}
                                     >
                                     {/* Bookmark icon AND HANDLE ERROR */}
-                                    <button type="submit" className="font-sm px-4 py-2 text-black absolute left-140 top-6">
-                                    {thisSongAlreadyAdded
-                                    ? <span>"Song already in library</span>
+                                    {/* <button type="submit" className="font-sm px-4 py-2 text-black absolute left-140 top-6"> */}
+                                    {/* {thisSongAlreadyAdded
+                                    ? <addToLibraryButton isAdded={thisSongAdded} actionOnAdd={() => {}}></addToLibraryButton>
                                     : thisSongError
                                         ? <span className="font-semibold text-red-500">
                                             "Edge case song... error be added to library"
-                                        </span>
-                                        : 
-                                        <Bookmark 
-                                            strokeWidth={1.5}
-                                            className={`${thisSongAdded ? "fill-yellow-500" : "none"} -translate-y-3 h-10 w-10 text-medium hover:fill-yellow-500 hover:scale-110 transition ease-in-out duration-100`}/>  
-                                    }
-                                    </button>
+                                        </span> */}
+                                    <AddToLibraryButton isAdded={thisSongAdded} 
+                                        actionOnAdd={() => {}}
+                                        className="font-sm px-4 py-2 text-black absolute left-140 top-6"></AddToLibraryButton>
+                                    {/* </button> */}
                                 </form>
                                 <MusicCard
                                 songName={song.track_name}
@@ -247,6 +246,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                 albumName={song.album_name}
                                 imageUrl={song.album_image} 
                                 className="relative hover:scale-105 hover:shadow-xl transition-all ease-in-out duration-300"
+                                songId={song.spotify_id}
                                 />
                                 {/* Spotify export icon + tooltip */}
                                 <div className="group absolute top-4 left-4 rounded-full bg-neutral-200 h-10 w-10">
@@ -267,7 +267,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
 
             {/* SEARCH BAR AND MODE SWITCHER*/}
-            <footer className={`fixed bottom-0 right-0 z-10 left-0 md:left-[var(--sidebar-width)] bg-white p-3 transition-all duration-700 border-t`}>
+            <footer className={`fixed bottom-0 right-0 z-10 left-0 md:left-[var(--sidebar-width)] bg-white p-3 transition-all duration-1200 border-t`}>
                 <div className={`flex flex-1 flex-col md:flex-row items-center gap-2 max-w-5xl mx-auto w-full px-4 relative`}>
                     
                     {/* Mode Switcher buttons */}
