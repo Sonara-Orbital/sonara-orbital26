@@ -53,6 +53,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     const [songs, setSongs] = useState<Song[]>([]);
     const [loaded, setLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isPageEmpty, setIsPageEmpty] = useState(true);
 
     const username = userMetadata.username 
 
@@ -81,6 +82,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
         if (!inputVal.trim()) return;
+        setIsPageEmpty(false);
 
         const turnIndex = turns.length;
         try {
@@ -205,6 +207,13 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
             {/* SONGS DISPLAY */}
             <main className="w-full flex flex-col z-5 mb-20">
+                <div className={`text-xl font-medium mb-6 text-neutral-700 transition-all duration-300 text-center
+                    ${isPageEmpty 
+                        ? ""
+                        : "opacity-0 -translate-y-4"}`}
+                >
+                    Enter a prompt to start discovering songs!
+                </div>
                 {turns.map((turn, index) => (
                     <div key={index}>
                         <ChatCard value={turn.userInput} />
