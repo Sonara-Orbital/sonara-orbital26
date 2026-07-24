@@ -217,7 +217,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                             const thisSongAdded = !!addedSongs[songKey];
                             const thisSongAlreadyAdded = !!alreadyAdded[songKey];
 
-                            return <div className="relative mb-2" key={i}>
+                            return <div className="relative mb-8" key={i}>
                                 <form className="relative"
                                 action={async () => {
                                     console.log("clicked");
@@ -244,7 +244,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                 artistName={song.artist_name}
                                 albumName={song.album_name}
                                 imageUrl={song.album_image} 
-                                className="relative"
+                                className="relative hover:scale-105 hover:shadow-xl transition-all ease-in-out duration-300"
                                 />
                                 {/* Spotify export icon + tooltip */}
                                 <div className="group absolute top-4 left-4 rounded-full bg-neutral-200 h-10 w-10">

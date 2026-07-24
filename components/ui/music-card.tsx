@@ -12,7 +12,7 @@ export function MusicCard({ songName, albumName, artistName, imageUrl, className
     const upscaledImage = imageUrl ? imageUrl.replace("100x100", "600x600") : "none";
 
     return (
-        <Card className={`relative mx-auto my-5 ml-30 w-full max-w-sm shadow-lg ${className}`}>
+        <Card className={`relative mx-auto my-5 ml-30 w-full max-w-sm shadow ${className}`}>
                 <img 
                     src={upscaledImage ? upscaledImage : "none"}
                     alt="Album Cover not Available"
