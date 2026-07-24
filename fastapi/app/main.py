@@ -18,6 +18,7 @@ app = FastAPI()
 
 # app.include_router(recommend_router, prefix="/api")
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "https://sonara-orbital26-git-deploy-test-sonara1.vercel.app"],
@@ -45,10 +46,13 @@ vectors = bundle["vectors"]
 id_to_index = {song_id: index for (index, song_id) in enumerate(song_idxs)}
 
 
+### SET THE NUMBER OF RESULT SONGS FROM RECOMMENDER###
+song_count = 6
+
 def get_neighbours_by_vector(song_vector: list, song_id: str) -> list[str]:
     vector = np.array(song_vector).reshape(1, -1)
 
-    distances, indices = nn_model.kneighbors(vector, 5)
+    distances, indices = nn_model.kneighbors(vector, song_count + 1)
 
     distances = distances.flatten()
     indices = indices.flatten()
@@ -68,6 +72,7 @@ def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) 
     if not idx:
         return []
     
+    
     return get_neighbours_by_vector(json.loads(idx[0]["embeddings"]), song_id)[:limit]
 
 
@@ -86,7 +91,7 @@ def recommender(song_name: str, artist_name="") -> list[str]:
     #print(distances)
     #print(indices)
 
-    results = get_raw_neighbours(song_id, 5, [])
+    results = get_raw_neighbours(song_id, song_count, [])
     
     #print(results)
     #print("===========================================")
@@ -104,7 +109,9 @@ def recommender(song_name: str, artist_name="") -> list[str]:
             "track_name": song["track_name"],
             "artist_name": song["artist_name"]
         }  for song in records]
-    print("SONG RES", song_results)
+    print("SONG RES")
+    for song in song_results:
+        print(song)
     
     #print(song_results)
     
