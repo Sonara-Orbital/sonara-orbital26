@@ -268,7 +268,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
             {/* SEARCH BAR AND MODE SWITCHER*/}
             <footer className={`fixed bottom-0 right-0 z-10 left-0 md:left-[var(--sidebar-width)] bg-white p-3 transition-all duration-700 border-t`}>
-                <div className={`flex flex-1 flex-col md:flex-row items-center gap-2 max-w-5xl mx-auto w-full px-4 relative h-10`}>
+                <div className={`flex flex-1 flex-col md:flex-row items-center gap-2 max-w-5xl mx-auto w-full px-4 relative`}>
                     
                     {/* Mode Switcher buttons */}
                     <ButtonGroup className="shrink-0 z-20">
@@ -285,18 +285,18 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                     </ButtonGroup>
 
                     {/* Search bar and go button */}
-                    <form className={`absolute left-1/2 w-full max-w-xl flex gap-20 justify-center flex-col transition-all duration-1000 ease-in-out ${
+                    <form className={`flex justify-center flex-col transition-all duration-900 ease-in-out ${
                         isPageEmpty
-                            ? "-translate-x-1/2 -translate-y-[50vh]"
-                            : "-translate-x-[35%] translate-y-0"
+                            ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-4 z-30"
+                            : "top-[88vh] -translate-y-0 md:top-[90vh] w-full"
                     }`} 
                     onSubmit={handleSubmit}>
 
                         {/* Welcome message */}
-                        <div className={`font-sm text-center mb-2 transition-all duration-300 text-2xl ${
+                        <div className={`font-sm text-center mb-2 transition-all duration-200 text-2xl absolute ${
                             isPageEmpty 
-                                ? "opacity-100 translate-y-0" 
-                                : "opacity-0 -translate-y-3 pointer-events-none absolute"
+                                ? "opacity-100 -translate-y-12 pointer-events-auto"
+                                : "opacity-0 translate-y-3 pointer-events-none"
                         }`}> 
                             Start discovering songs! 
                         </div>
