@@ -162,6 +162,14 @@
   display: none;
 }
 
+img {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-style: italic;
+  font-weight: 500;
+  color: #555555;
+}
+
 
 /*
 .layout {

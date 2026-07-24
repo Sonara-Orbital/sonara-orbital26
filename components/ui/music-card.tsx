@@ -1,4 +1,5 @@
 import { Card, CardDescription, CardTitle, CardContent } from "@/components/ui/card";
+import { useState } from "react";
 
 interface MusicCardProps {
     songName: string,
@@ -9,14 +10,16 @@ interface MusicCardProps {
 }
 
 export function MusicCard({ songName, albumName, artistName, imageUrl, className }: MusicCardProps) {
-    const upscaledImage = imageUrl ? imageUrl.replace("100x100", "600x600") : "none";
+    const upscaledImage = imageUrl ? imageUrl.replace("100x100", "600x600") : "/fallbackImage.svg";
+    const [imgSrc, setImgSrc] = useState(upscaledImage);
 
     return (
         <Card className={`relative mx-auto my-5 ml-30 w-full max-w-sm shadow ${className}`}>
                 <img 
-                    src={upscaledImage ? upscaledImage : "none"}
+                    src={imgSrc}
                     alt="Album Cover not Available"
                     className="relative z-20 aspect-square object-cover h-full w-full"
+                    onError={() => setImgSrc("/fallbackImage.svg")}
                 />
 
                 {/* Song and artist name */}
