@@ -43,21 +43,12 @@ async def extract_tracks_from_playlist(playlist_url: str, user_id: str) -> List[
 
     vector_tracks = []
     for track in tracks:
-        song_name = track["title"]
-        artist_name = track["artist"]
-        song_url = get_song_url(song_name, artist_name)
-        id = str(uuid.uuid4())
-        vec = extract_features(song_url, id)
-        embedding = {}
-        embedding["id"] = track["id"]
-        embedding["embeddings"] = vec
-        vector_tracks.append(embedding)
 
         track["song_id"] = track["id"]
         track.pop("id")
         track["user_id"] = user_id
 
-    response1 = supabase.table("Song_Vectors").upsert(vector_tracks, ignore_duplicates=True).execute()
+    #response1 = supabase.table("Song_Vectors").upsert(vector_tracks, ignore_duplicates=True).execute()
     response2 = supabase.table("User_saved_songs").upsert(tracks, ignore_duplicates=True).execute()
 
     return tracks
@@ -88,7 +79,8 @@ async def fetch_spotify_tracks(playlist_id: str) -> List[Dict[str, str]]:
                     extracted.append({
                         "id": track["id"],
                         "title": track["name"],
-                        "artist": track["artists"][0]["name"]
+                        "artist": track["artists"][0]["name"],
+                        "duration": track["duration_ms"]
                     })
                     
             return extracted
@@ -97,7 +89,7 @@ async def fetch_spotify_tracks(playlist_id: str) -> List[Dict[str, str]]:
             print(f"Error fetching Spotify tracks: {repr(e)}")
             return []
 
-print(asyncio.run(extract_tracks_from_playlist("https://open.spotify.com/playlist/5Zvp8pfl3jdGelql3KByj1?si=49c9123cb7f84259", "hello")))
+#print(asyncio.run(extract_tracks_from_playlist("https://open.spotify.com/playlist/5Zvp8pfl3jdGelql3KByj1?si=49c9123cb7f84259", "21e4c7f7-7707-4095-8352-18712e6481da")))
 
 @app.post("/api/add-playlist")
 async def recommend_song_scroller(inputData: PlaylistInput):
