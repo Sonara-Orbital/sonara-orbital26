@@ -125,6 +125,8 @@ export async function addSongFromId(song_id: string) {
     }
 }
 
+
+// Old function
 export async function addSongFromTitleArtist(uncleanTitle: string, uncleanArtist: string) {
     console.log("adding");
     const title = uncleanTitle.trim();
