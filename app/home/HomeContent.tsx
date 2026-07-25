@@ -290,7 +290,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
             {/* SEARCH BAR AND MODE SWITCHER*/}
             <footer className={`fixed bottom-0 right-0 z-10 left-0 md:left-[var(--sidebar-width)] bg-white p-3 transition-all duration-1200 border-t`}>
-                <div className={`flex flex-1 flex-col md:flex-row items-center gap-2 max-w-5xl mx-auto w-full px-4 relative`}>
+                <div className={`flex flex-1 flex-col md:flex-row items-center gap-2 w-full px-4 relative`}>
                     
                     {/* Mode Switcher buttons */}
                     <ButtonGroup className="shrink-0 z-20">
