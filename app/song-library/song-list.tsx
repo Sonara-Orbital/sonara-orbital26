@@ -157,13 +157,13 @@ export default function SongList({ currUserSongs, userId }: SongListProps) {
         <div className="text-center p-8 rounded-xl border border-black w-full">
           <p className="text-black mb-4">Library is empty... Start adding songs!</p>
         </div>
-      ) : displaySongs.length === 0 ? (
+      ) : sortedUserSongs.length === 0 ? (
         <div className="text-center p-8 rounded-xl border border-black w-full">
           <p className="text-black mb-4">No songs found matching "{query}"</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 min-[2000px]:grid-cols-3 gap-5 w-full justify-items-center">
-          {displaySongs.map((song) => {
+          {sortedUserSongs.map((song) => {
             // Handle ID mapping differences between full library item and search result schema
             const uniqueId = song.id || song.song_id;
             const trackId = song.song_id;
