@@ -1,0 +1,21 @@
+"use client"
+import { ExternalLink } from "lucide-react";
+import { FaSpotify } from "react-icons/fa";
+
+
+// Uses song id to export song to spotify 
+// iconSize input is a string "h-x w-y", x and y are horizontal and vertical dimensions
+export function SpotifyExportButton({ songId, className="", iconSize }: { songId: string; className?: string; iconSize: string }) {
+    const spotifyLink = `https://open.spotify.com/track/${songId}`;
+
+    return <a
+        href={spotifyLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`mx-auto transition duration-100 hover:scale-110 hover:text-green-500 ${className}`}
+    >
+        {/* <ExternalLink className={iconSize} /> */}
+        <FaSpotify className={iconSize} />
+
+    </a>
+}

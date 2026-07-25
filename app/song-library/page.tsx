@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import SongList from "@/app/song-library/song-list";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { HomeSidebar } from "@/components/ui/home-sidebar";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +14,7 @@ export default async function LibraryPage() {
 
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
+  console.log("USER IS", user);
 
   // Logout if not signed in
   if (!user) {
@@ -38,7 +41,12 @@ export default async function LibraryPage() {
 
   return (
     <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
-      <SongList currUserSongs={currUserSongs || []} />
+      <SidebarProvider>
+        <HomeSidebar username={user.user_metadata.username} />
+        <SidebarInset>
+          <SongList currUserSongs={currUserSongs || []} />
+        </SidebarInset>
+      </SidebarProvider>
     </main>
   );
 }

@@ -4,14 +4,9 @@ from sklearn.neighbors import NearestNeighbors
 from supabase import create_client, Client
 from fastapi import FastAPI
 import numpy as np
-
-dotenv.load_dotenv()
+from app.database import supabase
 
 app = FastAPI()
-
-SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 PAGE_SIZE = 1000 
 

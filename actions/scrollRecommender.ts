@@ -34,9 +34,11 @@ export async function ScrollRecommender(blackListIds: string[]) {
 
     const excludeIds = [...new Set([...(blackListIds ?? []), ...seenIds, ...libraryIds])];
 
-    // Future speed improvement: modify recommender function to perform recommendation on song list without excluded id's
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    console.log("API URL", API_URL)
+    console.log(`${API_URL}/scroller-pool`)
     try {
-        const recommenderRes = await fetch("http://localhost:8000/api/scroller-pool", {
+        const recommenderRes = await fetch(`${API_URL}/api/scroller-pool`, {
             method: "POST",
             headers: {"Content-Type": "application/json" },
             body: JSON.stringify({ 
@@ -54,7 +56,10 @@ export async function ScrollRecommender(blackListIds: string[]) {
         const nextSongBatch = await recommenderRes.json();
         
         // Return res
-        if (nextSongBatch.status == "success") {
+        console.log(nextSongBatch, "NEXT SONG BATCH");
+        if (nextSongBatch.status == "empty library error") {
+            return { sucess: false, error: "empty library error" };
+        } else if (nextSongBatch.status == "success") {
             console.log("recommended songs: .....", nextSongBatch);
             return nextSongBatch;
         } else {

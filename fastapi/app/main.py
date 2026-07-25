@@ -8,29 +8,24 @@ import json, ast, os, joblib, spotipy
 import musicbrainzngs as mbn
 import zstandard as zstd
 from spotipy.oauth2 import SpotifyClientCredentials
-from app.mood_recommender import router as recommend_router
+
 from app.database import supabase  # Client created in database.py
-from fastapi import HTTPException
-from app.custom_vector import extract_features, get_song_url
-import uuid
+from fastapi.middleware.cors import CORSMiddleware
+from app.mood_to_vector_converter import convert_user_mood_to_vector
+import random
 
 app = FastAPI()
 
+# app.include_router(recommend_router, prefix="/api")
 
-origins = [
-    "http://localhost:3000", 
-    "http://127.0.0.1:3000"
-]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://localhost:3000", "https://sonara-orbital26-git-deploy-test-sonara1.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.include_router(recommend_router, prefix="/api")
 
 class DataInput(BaseModel):
     songName: str
@@ -48,20 +43,16 @@ nn_model = bundle["model"]
 song_idxs = bundle["ids"]
 vectors = bundle["vectors"]
 
+id_to_index = {song_id: index for (index, song_id) in enumerate(song_idxs)}
 
-# MAIN MATH LOGIC returns array of neighbour song_id's, return limit number of recommendations
 
-def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) -> list[str]:
-    idx = supabase.table("Song_Vectors").select("embeddings").eq("id", song_id)\
-        .not_.in_("id", blackListedSongIds)\
-        .execute().data
-    
-    if not idx:
-        return []
-    
-    vector = np.array(json.loads(idx[0]["embeddings"])).reshape(1, -1)
+### SET THE NUMBER OF RESULT SONGS FROM RECOMMENDER###
+song_count = 6
 
-    distances, indices = nn_model.kneighbors(vector, limit + 1)
+def get_neighbours_by_vector(song_vector: list, song_id: str) -> list[str]:
+    vector = np.array(song_vector).reshape(1, -1)
+
+    distances, indices = nn_model.kneighbors(vector, song_count + 1)
 
     distances = distances.flatten()
     indices = indices.flatten()
@@ -70,20 +61,23 @@ def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) 
     print("done")
     return raw_ids
 
-def get_neighbours_by_vector(song_vector: list) -> list[str]:
-    vector = np.array(song_vector).reshape(1, -1)
 
-    distances, indices = nn_model.kneighbors(vector, 5)
-
-    distances = distances.flatten()
-    indices = indices.flatten()
-
-    raw_ids = [song_idxs[i] for i in indices]
-    print("done")
-    return raw_ids
+# MAIN MATH LOGIC returns array of neighbour song_id's, return limit number of recommendations
+def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) -> list[str]:
+    ## CALL SUPABASE TO GET EMBEDDING METHOD ##
+    idx = supabase.table("Song_Vectors").select("embeddings").eq("id", song_id)\
+        .not_.in_("id", blackListedSongIds)\
+        .execute().data
+    
+    if not idx:
+        return []
+    
+    
+    return get_neighbours_by_vector(json.loads(idx[0]["embeddings"]), song_id)[:limit]
 
 
 # MAIN RECOMMENDER FUNCTION #
+# Return list of objects, each song object has id and track_name
 def recommender(song_name: str, artist_name="") -> list[str]:
     if (artist_name==""):
         song = supabase.table("Songs").select("id").ilike("track_name", song_name).execute().data
@@ -91,17 +85,12 @@ def recommender(song_name: str, artist_name="") -> list[str]:
         song = supabase.table("Songs").select("id").ilike("artist_name", artist_name).ilike("track_name", song_name).execute().data
 
     if not song:
-        song_url = get_song_url(song_name, artist_name)
-        id = str(uuid.uuid4())
-        vec = extract_features(song_url, id)
-        results = get_neighbours_by_vector(vec)
-    else:
-        song_id = song[0]["id"]
-        results = get_raw_neighbours(song_id, 5, [])
-
+        return []
     
     #print(distances)
     #print(indices)
+
+    results = get_raw_neighbours(song, song_count, [])
     
     #print(results)
     #print("===========================================")
@@ -112,18 +101,38 @@ def recommender(song_name: str, artist_name="") -> list[str]:
     #     print(song_name)
     #     song_results.append(song_name)
 
-    records = supabase.table("Songs").select("track_name", "artist_name").in_("id", results).execute().data
-    song_results = [record["track_name"] for record in records]
+    records = supabase.table("Songs").select("track_name", "artist_name", "id").in_("id", results).execute().data
+    song_results = [
+        {
+            "spotify_id": song["id"],
+            "track_name": song["track_name"],
+            "artist_name": song["artist_name"]
+        }  for song in records]
+    print("SONG RES")
+    for song in song_results:
+        print(song)
     
     #print(song_results)
     
     return song_results
 #print(recommender("radioactive", "Imagine Dragons"))
 
+# RECOMMENDER ENDPOINT
 @app.post("/api/process")
 async def recommend_song(inputData: DataInput):
-    result = recommender(inputData.songName, inputData.artistName)
-    return {"status": "success", "data": result}
+    try:
+        recommender_res = recommender(inputData.songName, inputData.artistName)
+        result = [
+        {
+            "spotify_id": song["spotify_id"],
+            "track_name": song["track_name"],
+            "artist_name": song["artist_name"]
+        } 
+        for song in recommender_res]
+        return {"status": "success", "data": result}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 
 
 
@@ -131,16 +140,17 @@ async def recommend_song(inputData: DataInput):
 ############################################################
 # SCROLLER RECOMMENDER LOGIC #
 
-
-
-
 # Scroller pool recommndation logic ... returns list of song_id's
 def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackListedSongIds: list[str]) -> list[str]:
+    if not seed_song_ids:
+        raise ValueError("seed_song_ids cannot be empty")
+
     # 1. Get embeddings for the input pool of songs
     records = supabase.table("Song_Vectors").select("id", "embeddings")\
         .not_.in_("id", blackListedSongIds).in_("id", seed_song_ids).execute().data
     if not records:
         print("NOT RECORDS")
+        print("SEED SONG IDS", seed_song_ids)
         return []
     
     # 2. Put embedding into numpy arrray
@@ -177,14 +187,6 @@ def scroller_recommender(user_id: str, blackListIds: list[str]) -> list[SimpleSo
     blackListedSongIds = list(dict.fromkeys(blackListedSongIds))
     print("BLACKLIST_EXCLUDING_SEEDS", blackListedSongIds)
 
-    ## OPTION 1 GET ALL CANDIDATES AND RANDOMLY SELECT ##
-    # song_candidates =[]
-    # # Get neighbours of each of the 5 songs
-    # for song_id in last_five_ids:
-    #     song_candidates.exrend(get_raw_neighbours(song_id, 5))
-
-    ## OPTION 2 GENERATE AVERAGE VECTOR ## 
-    # Query 30 neighbours, filter those in blacklist
     raw_ids = get_raw_neighbours_from_pool(last_five_ids, 30, blackListedSongIds)
     resData = supabase.table("Songs").select("id", "track_name", "artist_name")\
         .in_("id", raw_ids).not_.in_("id", blackListedSongIds)\
@@ -211,6 +213,35 @@ async def recommend_song_scroller(inputData: scrollerInput):
     print("RESULT", result)
     return {"status": "success", "data": result}
 
+
+
+
+####### MOOD RECOMMENDER ENDPOINT #########
+class MoodInput(BaseModel):
+    moodPrompt: str
+
+# Returns list of objects, with spotify_id, track_name, artist_name
+@app.post("/api/mood")
+async def get_mood_recommendations(InputMood: MoodInput):
+    mood_input = InputMood.moodPrompt
+    print(mood_input)
+    mood_vector = convert_user_mood_to_vector(mood_input)
+    if not mood_input:
+        return {"status": "error", "message": "moodPrompt is required."}
+    neighbour_ids = get_neighbours_by_vector(mood_vector, song_id=None)[:20] 
+    random_neighbour_ids = random.sample(neighbour_ids, min(len(neighbour_ids), 5))
+    records = supabase.table("Songs").select("id", "track_name", "artist_name").in_("id", random_neighbour_ids).execute().data
+    song_results = [
+        {
+            "spotify_id": song["id"],
+            "track_name": song["track_name"],
+            "artist_name": song["artist_name"]
+        } 
+        for song in records]
+    
+    return {"status": "success", "data": song_results}
+
+    
 
 if __name__ == "__main__":
     import uvicorn
