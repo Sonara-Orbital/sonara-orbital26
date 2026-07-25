@@ -44,7 +44,7 @@ export default async function LibraryPage() {
       <SidebarProvider>
         <HomeSidebar username={user.user_metadata.username} />
         <SidebarInset>
-          <SongList currUserSongs={currUserSongs || []} />
+          <SongList userId={user.id} currUserSongs={currUserSongs || []} />
         </SidebarInset>
       </SidebarProvider>
     </main>

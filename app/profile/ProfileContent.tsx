@@ -8,6 +8,9 @@ import { HomeSidebar } from "@/components/ui/home-sidebar";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { FriendsCard } from "@/components/ui/friends-card";
 import { addFriend } from "../auth/actions";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 
 interface ProfileContentProps {
     userProfile: any,

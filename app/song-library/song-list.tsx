@@ -1,7 +1,7 @@
 "use client";
 
 import { addSong } from "@/actions/songs";
-import { ArrowUpDown, ArrowUpNarrowWide, ArrowDownWideNarrow, Trash , Trash2 } from "lucide-react";
+import { Plus, ArrowUpDown, ArrowUpNarrowWide, ArrowDownWideNarrow, Trash , Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { searchLibrary } from "@/actions/search";
@@ -9,9 +9,21 @@ import { HomeSidebar } from "@/components/ui/home-sidebar";
 import { SidebarProvider, SidebarInset, Sidebar } from "@/components/ui/sidebar";
 import { deleteSong } from "@/actions/delete";
 import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 
-export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
+interface SongListProps {
+  currUserSongs: any,
+  userId: string
+}
+
+export default function SongList({ currUserSongs, userId }: SongListProps) {
+  const router = useRouter();
   const [isAscending, setIsAscending] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [inputVal, setInputValue] = useState("")
 
   // Search bar for library
   const [query, setQuery] = useState("");
@@ -43,8 +55,64 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
     : -1;
   });
 
+  async function handleUpload() {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    console.log(API_URL)
+    try {
+      const res = await fetch(`${API_URL}/api/add-playlist`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json" },
+          body: JSON.stringify({ 
+              user_id: userId,
+              playlist_url: inputVal
+          })
+      });
+      if (!res.ok) {
+        console.error(`upload failed with status ${res.status}`, await res.text());
+        return;
+      }
+      const data = await res.json()
+      console.log("playlist added")
+      setInputValue("")
+      setUploadOpen(false);
+      router.refresh();
+    } catch (err) {
+      console.error("Network or server error", err)
+    }
+
+  }
+
   return (
         <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
+          <button
+            className="left-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
+            onClick={() => setUploadOpen(!uploadOpen)}
+          ><Plus/></button>
+          <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Playlist Upload</DialogTitle>
+                <DialogDescription>
+                  Add in the spotify share URL of the public playlist you wish to upload
+                </DialogDescription>
+              </DialogHeader>
+
+              {/* Form Content */}
+              <div className="py-4">
+                <Input
+                  placeholder="https://open.spotify.com/playlist/..."
+                  value={inputVal}
+                  onChange={(e) => setInputValue(e.target.value)}
+                />
+              </div>
+
+              <DialogFooter>
+                <Button type="button" onClick={handleUpload}>
+                  Upload
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <button
             onClick={() => {
               setIsAscending(!isAscending);
@@ -75,7 +143,7 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
 
           <header className="mb-4">
             <h1 className="text-3xl font-bold tracking-tight">Your Library</h1>
-            <p className="text-gray-400">You have {currUserSongs?.length || 0} songs saved</p>
+            <p className="text-gray-400">You have {currUserSongs?.length || 0} {currUserSongs?.length == 1 ? "song" : "songs"} saved</p>
           </header>
 
           {/* SEARCH BAR */}
