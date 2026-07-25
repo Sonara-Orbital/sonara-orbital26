@@ -82,7 +82,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
 
     const handleSubmit = async (e: React.SubmitEvent) => {
-        e.preventDefault()
+        e.preventDefault();
         if (!inputVal.trim()) return;
         setIsPageEmpty(false);
 
@@ -108,6 +108,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                 );
 
                 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                console.log("API URL", API_URL)
                 res = await fetch(`${API_URL}/api/process`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json" },
@@ -222,7 +223,10 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
    return (
     <SidebarProvider >
         <HomeSidebar username={username} className="z-20"/>
-        <SidebarInset>
+        <SidebarInset className="">
+            <div className="flex items-center px-4 pt-4 md:hidden">
+                <SidebarTrigger />
+            </div>
             <div className="w-full h-10 my-5 text-sm font-semibold text-neutral-600"/>
 
             {/* SONGS DISPLAY */}
@@ -260,15 +264,16 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                         </span> */}
                                     {/* </button> */}
                                 </form>
+
                                 <MusicCard
-                                songName={song.track_name}
-                                artistName={song.artist_name}
-                                albumName={song.album_name}
-                                imageUrl={song.album_image} 
-                                className="relative hover:scale-105 hover:shadow-xl transition-all ease-in-out duration-300"
-                                songId={song.spotify_id}
-                                isAdded={thisSongAdded}
-                                buttonSize={10}
+                                    songName={song.track_name}
+                                    artistName={song.artist_name}
+                                    albumName={song.album_name}
+                                    imageUrl={song.album_image}
+                                    className="relative hover:scale-105 hover:shadow-xl transition-all ease-in-out duration-300"
+                                    songId={song.spotify_id}
+                                    isAdded={thisSongAdded}
+                                    buttonSize={10}
                                 />
                                 {/* Spotify export icon + tooltip */}
                                 <div className="group absolute top-4 left-4 rounded-full h-10 w-10">
@@ -287,7 +292,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
             {/* SEARCH BAR AND MODE SWITCHER*/}
             <footer className={`fixed bottom-0 right-0 z-10 left-0 md:left-[var(--sidebar-width)] bg-white p-3 transition-all duration-1200 border-t`}>
-                <div className={`flex flex-1 flex-col md:flex-row items-center gap-2 max-w-5xl mx-auto w-full px-4 relative`}>
+                <div className={`flex flex-1 flex-col md:flex-row items-center gap-2 w-full px-4 relative`}>
                     
                     {/* Mode Switcher buttons */}
                     <ButtonGroup className="shrink-0 z-20">
@@ -306,7 +311,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                     {/* Search bar and go button */}
                     <form className={`flex justify-center flex-col transition-all duration-900 ease-in-out ${
                         isPageEmpty
-                            ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-4 z-30"
+                            ? " fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-4 z-30"
                             : "top-[88vh] -translate-y-0 md:top-[90vh] w-full"
                     }`} 
                     onSubmit={handleSubmit}>
