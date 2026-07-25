@@ -2,9 +2,9 @@ import { Input } from "./input";
 import { Button } from "./button";
 import { Card, CardHeader, CardFooter, CardDescription, CardContent } from "./card";
 import { ScrollArea } from "./scroll-area"
-import { useState } from "react";
-import { Search, Check, X} from "lucide-react";
-import { deleteFriend, acceptFriendRequest } from "@/app/auth/actions";
+import { useEffect, useRef, useState } from "react";
+import { Search, Check, X, UserPlus} from "lucide-react";
+import { searchUsernames, addFriend, deleteFriend, acceptFriendRequest } from "@/app/auth/actions";
 
 interface FriendCardProps {
     onClick: (e:string) => void;
@@ -50,11 +50,69 @@ export function FriendsCard({ onClick, friendsList, requestsList, userId }: Frie
     const [text, setText] = useState("");
     const[friends, setFriends] = useState(friendsList);
     const[requests, setRequests] = useState(requestsList);
+    const [results, setResults] = useState<{id: string; username: string }[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [showDropdown, setShowDropdown] = useState(false);
 
-    function buttonClick() {
-        const username = text
-        onClick(username)
-        setText("")
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if(selectedId && results.find((r) => r.id === selectedId)?.username !== text) {
+            setSelectedId(null);
+        }
+
+        if (text.trim().length < 2) {
+            setResults([]);
+            return;
+        }
+
+        setLoading(true);
+        const timeout = setTimeout( async() => {
+            const data = await searchUsernames(text);
+            setResults(data);
+            setLoading(false);
+            setShowDropdown(true);
+        }, 300);
+
+
+        return () => clearTimeout(timeout);
+    }, [text]);
+
+    useEffect(() => {
+        function handleClickOutside(e: MouseEvent) {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setShowDropdown(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
+
+    function handleSelectUser(user: {id: string, username: string}) {
+        setText(user.username);
+        setSelectedId(user.id);
+        setShowDropdown(false);
+    }
+
+    async function buttonClick() {
+        if (!selectedId) return;
+        
+        const idToSend = selectedId;
+        setText("");
+        setSelectedId(null);
+        setResults([]);
+
+        try {
+            const result = await addFriend(idToSend);
+            if (result?.error) {
+                throw new Error(result.error);
+            }
+            onClick(idToSend);
+        } catch (err) {
+            console.error("Failed to send friend request", err);
+        }
+
     }
 
     async function handleRemoveFriend(id: string) {
@@ -120,9 +178,16 @@ export function FriendsCard({ onClick, friendsList, requestsList, userId }: Frie
                             <MadeFriendTag key={item.id} onAccept={() => handleAcceptRequest(item.id, item.username)} userId={userId} id={item.id} username={item.username} onRemove={handleRemoveFriend}/>
                         ))}
                     </ScrollArea>
-                    <div className="flex  flex-row gap-2 shrink-0">
-                        <Input type="text" className="py-0 bg-neutral-100" placeholder="Add Friend" value={text} onChange={(e) => setText(e.target.value)}/>
-                        <Button onClick={buttonClick} className="hover:cursor-pointer" type="button"><Search/></Button>
+                    <div className="flex  flex-row gap-2 shrink-0" ref={containerRef}>
+                        <Input 
+                        type="text" 
+                        className="py-0 bg-neutral-100" 
+                        placeholder="Add Friend" 
+                        value={text} 
+                        onChange={(e) => setText(e.target.value)} 
+                        onFocus={() => () => { if (results.length > 0) setShowDropdown(true)}}/>
+                        <Button onClick={buttonClick} disabled={!selectedId} className="hover:cursor-pointer" type="button"><UserPlus/></Button>
+                        
                     </div>
                 </CardContent>
             </Card>

@@ -193,3 +193,22 @@ export async function deleteFriend(first_id: string, second_id: string) {
     return { success: true };
 
 }
+
+//SEARCH FOR USERS TO ADD FRIEND
+export async function searchUsernames(query: string) {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase
+    .from('Users')
+    .select("id, username")
+    .ilike("username", query)
+    .limit(5)
+
+    if (error) {
+        console.log(error.message);
+        return []
+    }
+
+    return data
+}
