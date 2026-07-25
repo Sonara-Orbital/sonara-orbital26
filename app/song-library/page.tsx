@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import SongList from "@/app/song-library/song-list";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { HomeSidebar } from "@/components/ui/home-sidebar";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +44,7 @@ export default async function LibraryPage() {
       <SidebarProvider>
         <HomeSidebar username={user.user_metadata.username} />
         <SidebarInset>
+          <SidebarTrigger className="absolute -top-6 left-2 md:hidden"></SidebarTrigger>
           <SongList currUserSongs={currUserSongs || []} />
         </SidebarInset>
       </SidebarProvider>
