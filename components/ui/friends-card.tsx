@@ -102,6 +102,7 @@ export function FriendsCard({ onClick, friendsList, requestsList, userId }: Frie
         setText("");
         setSelectedId(null);
         setResults([]);
+        setShowDropdown(false)
 
         try {
             const result = await addFriend(idToSend);
@@ -168,26 +169,41 @@ export function FriendsCard({ onClick, friendsList, requestsList, userId }: Frie
 
     return (
         <div className="flex flex-col gap-3 h-screen min-h-dvh">
-            <Card className="flex flex-col py-5 min-h-0 bg-neutral-200 shrink-0 basis-1/2 border-[#77797a] border-1 overflow-hidden">
-                <CardHeader className="flex flex-row bg-neutral-100 rounded-t-lg py-3 -mt-5 -mx-4">
+            <Card className="flex flex-col py-5 min-h-0 bg-neutral-200 shrink-0 basis-1/2 border-[#77797a] border-1 overflow-visible">
+                <CardHeader className="flex flex-row bg-neutral-100 rounded-t-lg py-3 -mt-4.5 mx-0">
                     <h1 className="pl-3">Friends</h1>
                 </CardHeader>
-                <CardContent className="flex flex-col flex-1 overflow-hidden bg-neutral-200">
+                <CardContent className="flex flex-col flex-1 overflow-visible bg-neutral-200">
                     <ScrollArea className="flex-1 overflow-y-auto mb-2">
                         {friends.map((item, index) => (
                             <MadeFriendTag key={item.id} onAccept={() => handleAcceptRequest(item.id, item.username)} userId={userId} id={item.id} username={item.username} onRemove={handleRemoveFriend}/>
                         ))}
                     </ScrollArea>
-                    <div className="flex  flex-row gap-2 shrink-0" ref={containerRef}>
+                    <div className="relative flex flex-row gap-2 shrink-0" ref={containerRef}>
                         <Input 
                         type="text" 
                         className="py-0 bg-neutral-100" 
                         placeholder="Add Friend" 
                         value={text} 
                         onChange={(e) => setText(e.target.value)} 
-                        onFocus={() => () => { if (results.length > 0) setShowDropdown(true)}}/>
+                        onFocus={() => { if (results.length > 0) setShowDropdown(true)}}/>
                         <Button onClick={buttonClick} disabled={!selectedId} className="hover:cursor-pointer" type="button"><UserPlus/></Button>
-                        
+                        {showDropdown && (
+                            <Card className="absolute top-full left-0 right-11 mt-1 z-10 max-h-48 overflow-y-auto p-1 bg-neutral-100">
+                                {loading && (
+                                    <div className="text-sm text-muted-foreground px-2 py-1">Searching..</div>
+                                )}
+                                {!loading && results.length === 0 && (
+                                    <div className="text-sm text-muted-foreground px-2 py-1">No Users Found</div>
+                                )}
+                                {!loading && results.map((user) => (
+                                    <div
+                                        key={user.id}
+                                        className="px-2 py-1 rounded hover:bg-neutral-200 cursor-pointer text-sm"
+                                        onClick={() => { handleSelectUser(user)}}>{user.username}</div>
+                                ))}
+                            </Card>
+                        )}
                     </div>
                 </CardContent>
             </Card>
