@@ -55,7 +55,7 @@ export function MusicCard({ songName, albumName, artistName, imageUrl, className
     }, [songName]);
 
     return (
-        <Card className={`relative mx-auto my-5 ml-30 w-full max-w-sm shadow ${className} duration-300`}>
+        <Card className={`hover:scale-110 relative mx-auto w-full max-w-sm shadow ${className} duration-300`}>
             <img 
                 src={imgSrc}
                 alt="Album Cover not Available"
@@ -77,9 +77,11 @@ export function MusicCard({ songName, albumName, artistName, imageUrl, className
                         rel="noopener noreferrer"
                         className="block w-full min-w-0"
                     >
-                        <div className="leading-8 cursor-pointer hover:underline decoration-2 text-3xl font-bold tracking-tight text-neutral-900 line-clamp-2"
-                            title={songName}>
-                            {songName}
+                        <div className="h-18 flex flex-col ">
+                            <div className="pb-1 leading-8 cursor-pointer hover:underline decoration-2 text-3xl font-bold tracking-tight text-neutral-900 line-clamp-2"
+                                title={songName}>
+                                {songName}
+                            </div>
                         </div>
                     </a>
 

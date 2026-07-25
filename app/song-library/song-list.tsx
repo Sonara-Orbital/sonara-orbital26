@@ -45,92 +45,90 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
   });
 
   return (
-        <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
-          <button
-            onClick={() => {
-              setIsAscending(!isAscending);
-              console.log("reversed");
-            }}
-            className="right-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
-          >
-            {isAscending ? "Sort Most Recent" : "Sort Oldest"}
-          </button>
-          <form
-            action={async () => {
-              await addSong({
-                id: "TRK-0000B860FC",
-                title: "Testing AAAA",
-                artist: "Pea man",
-                duration: "4.4",
-                bpm: null,
-                genre: "pop",
-                prompt: "what song i listen",
-                album_art_url: null,
-              });
-            }}
-          >
-            {/* <button type="submit" className="bg-blue-500 px-4 py-2 text-white rounded-lg">
-              TEST
-            </button> */}
-          </form>
+    <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
+      <button
+        onClick={() => {
+          setIsAscending(!isAscending);
+          console.log("reversed");
+        }}
+        className="right-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
+      >
+        {isAscending ? "Sort Most Recent" : "Sort Oldest"}
+      </button>
+      <form
+        action={async () => {
+          await addSong({
+            id: "TRK-0000B860FC",
+            title: "Testing AAAA",
+            artist: "Pea man",
+            duration: "4.4",
+            bpm: null,
+            genre: "pop",
+            prompt: "what song i listen",
+            album_art_url: null,
+          });
+        }}
+      >
+      </form>
 
-          <header className="mb-4">
-            <h1 className="text-3xl font-bold tracking-tight">Your Library</h1>
-            <p className="text-gray-400">You have {currUserSongs?.length || 0} songs saved</p>
-          </header>
+      <header className="mb-4">
+        <h1 className="text-3xl font-bold tracking-tight">Your Library</h1>
+        <p className="text-gray-400">You have {currUserSongs?.length || 0} songs saved</p>
+      </header>
 
-          {/* SEARCH BAR */}
-          <input className="border border-black rounded-sm mb-4 pl-2 w-full max-w-150" 
-            placeholder="Search for songs..."
-            value={query}
-            onChange={handleInputChange}
-          ></input>
-          <ul className="w-full max-w-150 flex flex-col">
-            {queryResults.map((song) => (
-              <li key={song.song_id} className="flex justify-between">
-                <span className="font-bold">{song.title}</span>
-                <span className=""> {song.artist}</span>
-                {/* <span>{song}</span> */}
-              </li>
-            ))}
-          </ul>
+      {/* SEARCH BAR */}
+      <input className="border border-black rounded-sm mb-4 pl-2 w-full max-w-150" 
+        placeholder="Search for songs..."
+        value={query}
+        onChange={handleInputChange}
+      ></input>
+      <ul className="w-full max-w-150 flex flex-col">
+        {queryResults.map((song) => (
+          <li key={song.song_id} className="flex justify-between">
+            <span className="font-bold">{song.title}</span>
+            <span className=""> {song.artist}</span>
+            {/* <span>{song}</span> */}
+          </li>
+        ))}
+      </ul>
 
-          {/* DISPLAY SONGS */}
-          {currUserSongs?.length === 0 ? (
-            <div className="text-center p-8 rounded-xl border border-black">
-              <p className="text-black mb-4">Library is empty... Start adding songs!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3 w-full">
-              {displaySongs.map((song) => (
-                <div
-                  key={song.id}
-                  className=""
-                  >
-                  <MusicCard
-                    songName={song.title}
-                    albumName=""
-                    artistName={song.artist}
-                    imageUrl=""
-                    songId={song.song_id}
-                    isAdded={false}
-                    buttonSize={10}    
-                  ></MusicCard>
+      {/* DISPLAY SONGS */}
+      {currUserSongs?.length === 0 ? (
+        <div className="text-center p-8 rounded-xl border border-black">
+          <p className="text-black mb-4">Library is empty... Start adding songs!</p>
+        </div>
+      ) : (
+        
+        <div className="grid grid-cols-3 gap-5 w-full justify-items-center">
+          {displaySongs.map((song) => (
+            <div
+              key={song.id}
+              className="relative w-full max-w-sm"
+              >
+              <MusicCard
+                songName={song.title}
+                albumName=""
+                artistName={song.artist}
+                imageUrl=""
+                songId={song.song_id}
+                isAdded={false}
+                buttonSize={10}    
+              ></MusicCard>
 
-                  <div className="relative group">
-                    {/* Delete button */}
-                    <div>
-                      <button className=" absolute peer cursor-pointer opacity-0 absolute top-4 right-4 hover:text-red-500 duration-200 group-hover:opacity-100 ease-in-out"
-                        // Delete using the id in User_saved_songs, not song id 
-                        onClick={async () => deleteSong(song.id)}>  
-                          <Trash2 className="h-5 w-5"></Trash2>
-                      </button>
-                    </div>
-                  </div>
+              <div className="relative group">
+                {/* Delete button */}
+                <div>
+                  <button className=" absolute peer cursor-pointer opacity-0 absolute top-4 right-4 hover:text-red-500 duration-200 group-hover:opacity-100 ease-in-out"
+                    // Delete using the id in User_saved_songs, not song id 
+                    onClick={async () => deleteSong(song.id)}>  
+                      <Trash2 className="h-5 w-5"></Trash2>
+                  </button>
                 </div>
-              ))}
+              </div>
             </div>
-          )}
-        </main>
+          ))}
+        </div>
+      )}
+    </main>
   );
 }
