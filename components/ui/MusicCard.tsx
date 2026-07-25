@@ -65,7 +65,7 @@ export function MusicCard({ songName, albumName, artistName, imageUrl, className
 
             <div className="flex flex-col bg-white dark:bg-neutral-900 p-4 rounded-b-lg relative">
                 {/* Add to library button */}
-                <div className="absolute -top-1 right-1.5 z-10">
+                <div className="absolute top-0 right-1.5 z-10">
                     <AddToLibraryButton isAdded={isAdded} actionOnAdd={() => addSongFromId(songId)} />
                 </div>
 
