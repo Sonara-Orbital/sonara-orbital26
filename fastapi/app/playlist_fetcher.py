@@ -3,21 +3,31 @@ import httpx
 from typing import List, Dict
 from dotenv import load_dotenv
 from spotify_token import get_spotify_access_token
+import asyncio
+from custom_vector import extract_features, get_song_url
+import uuid
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from database import supabase
 
 load_dotenv()
 
+app = FastAPI()
 
-async def extract_tracks_from_playlist(playlist_url: str) -> List[Dict[str, str]]:
+class PlaylistInput(BaseModel):
+    user_id: str
+    playlist_url: str
+
+async def extract_tracks_from_playlist(playlist_url: str, user_id: str) -> List[Dict[str, str]]:
     tracks = []
     
     if "spotify.com" in playlist_url:
-        print("here")
         match = re.search(r"playlist/([a-zA-Z0-9]+)", playlist_url)
         if not match:
             raise ValueError("Invalid Spotify Playlist URL")
         
         playlist_id = match.group(1)
-        print(playlist_id)
         tracks = await fetch_spotify_tracks(playlist_id)
         
     #elif "apple.com" in playlist_url:
@@ -30,7 +40,26 @@ async def extract_tracks_from_playlist(playlist_url: str) -> List[Dict[str, str]
         
     else:
         raise ValueError("Unsupported provider")
-        
+
+    vector_tracks = []
+    for track in tracks:
+        song_name = track["title"]
+        artist_name = track["artist"]
+        song_url = get_song_url(song_name, artist_name)
+        id = str(uuid.uuid4())
+        vec = extract_features(song_url, id)
+        embedding = {}
+        embedding["id"] = track["id"]
+        embedding["embeddings"] = vec
+        vector_tracks.append(embedding)
+
+        track["song_id"] = track["id"]
+        track.pop("id")
+        track["user_id"] = user_id
+
+    response1 = supabase.table("Song_Vectors").upsert(vector_tracks, ignore_duplicates=True).execute()
+    response2 = supabase.table("User_saved_songs").upsert(tracks, ignore_duplicates=True).execute()
+
     return tracks
 
 async def fetch_spotify_tracks(playlist_id: str) -> List[Dict[str, str]]:
@@ -55,8 +84,9 @@ async def fetch_spotify_tracks(playlist_id: str) -> List[Dict[str, str]]:
             for item in items:
                 track = item.get("item") if isinstance(item, dict) else None
                 
-                if track and track.get("name") and track.get("artists"):
+                if track and track.get("id") and track.get("name") and track.get("artists"):
                     extracted.append({
+                        "id": track["id"],
                         "title": track["name"],
                         "artist": track["artists"][0]["name"]
                     })
@@ -66,4 +96,12 @@ async def fetch_spotify_tracks(playlist_id: str) -> List[Dict[str, str]]:
         except Exception as e:
             print(f"Error fetching Spotify tracks: {repr(e)}")
             return []
+
+print(asyncio.run(extract_tracks_from_playlist("https://open.spotify.com/playlist/5Zvp8pfl3jdGelql3KByj1?si=49c9123cb7f84259", "hello")))
+
+@app.post("/api/add-playlist")
+async def recommend_song_scroller(inputData: PlaylistInput):
+    user_id = inputData.user_id
+    url = inputData.playlist_url
+    await extract_tracks_from_playlist(url, user_id)
 
