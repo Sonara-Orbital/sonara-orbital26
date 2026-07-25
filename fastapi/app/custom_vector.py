@@ -20,8 +20,11 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 
 LOADED_MODELS = {}
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+def init_models():
+    global LOADED_MODELS
+    if LOADED_MODELS:
+        return
+
     embedding_model_path = os.path.join(BIN_DIR, "msd-musicnn-1.pb")
 
     self_contained_models = {
@@ -38,14 +41,18 @@ async def lifespan(app: FastAPI):
             "type": "direct",
             "algo": TensorflowPredictMusiCNN(graphFilename=model_path, output="model/Sigmoid")
         }
-        deam_path = os.path.join(BIN_DIR, "deam-msd-musicnn-1.pb")
-        if os.path.exists(embedding_model_path) and os.path.exists(deam_path):
-            LOADED_MODELS["deam"] = {
-                "type": "embedding",
-                "embedding_algo": TensorflowPredictMusiCNN(graphFilename=embedding_model_path, output="model/dense/BiasAdd"),
-                "algo": TensorflowPredict2D(graphFilename=deam_path, input="flatten_in_input", output="dense_out")
-            }
-        
+
+    deam_path = os.path.join(BIN_DIR, "deam-msd-musicnn-1.pb")
+    if os.path.exists(embedding_model_path) and os.path.exists(deam_path):
+        LOADED_MODELS["deam"] = {
+            "type": "embedding",
+            "embedding_algo": TensorflowPredictMusiCNN(graphFilename=embedding_model_path, output="model/dense/BiasAdd"),
+            "algo": TensorflowPredict2D(graphFilename=deam_path, input="flatten_in_input", output="dense_out")
+        }
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_models()
     yield
     LOADED_MODELS.clear()
 
@@ -67,7 +74,8 @@ def get_song_url(track_name: str, artist_name=""):
         data = response.json()
 
         if data["resultCount"] > 0:
-            return data['results'][0]
+            url = data['results'][0]['previewUrl']
+            return url
         else: 
             return "No matching Song Found"
     except requests.exceptions.RequestException as e:
@@ -132,8 +140,12 @@ artifacts = joblib.load("dance_model")
 dance_model = artifacts["model"]
 
 def extract_features (track_url: str, task_id: str):
+
+    init_models()
     
+    print("STARTING FEATURE EXTRACTION")
     input_audio = os.path.join(TEMP_DIR, f"{task_id}.m4a")
+    print("Input Audio: ", input_audio)
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -189,7 +201,9 @@ def extract_features (track_url: str, task_id: str):
         highlevels['instrumentalness'] = (highlevels['instrumental'][0] ** 3) * 0.0001
         highlevels['valence'] = (highlevels['deam'][0] - 1) / (9 - 1)
         highlevels['tempo'] = min_max_scale(features['rhythm.bpm'], tempo_min, tempo_max)
-        print(highlevels)
+        highlevels.pop('acoustic')
+        highlevels.pop('instrumental')
+        highlevels.pop('deam')
 
         return list(highlevels.values())
 
@@ -198,13 +212,13 @@ def extract_features (track_url: str, task_id: str):
     finally:
         if os.path.exists(input_audio):
             os.remove(input_audio)
+            print("removed")
 
 if __name__ == "__main__":
     from fastapi.testclient import TestClient
 
     id = str(uuid.uuid4())
-    song_info = get_song_url("Piano Man", "Billy Joel")
-    song_url = song_info.get('previewUrl')
+    song_url = get_song_url("Lose Yourself", "Eminem")
     print(song_url)
 
     with TestClient(app) as client:

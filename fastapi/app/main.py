@@ -87,11 +87,10 @@ def recommender(song_name: str, artist_name="") -> list[str]:
     if not song:
         return []
     
-    song_id = song[0]["id"]
     #print(distances)
     #print(indices)
 
-    results = get_raw_neighbours(song_id, song_count, [])
+    results = get_raw_neighbours(song, song_count, [])
     
     #print(results)
     #print("===========================================")
