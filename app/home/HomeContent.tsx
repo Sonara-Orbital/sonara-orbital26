@@ -222,7 +222,10 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
    return (
     <SidebarProvider >
         <HomeSidebar username={username} className="z-20"/>
-        <SidebarInset>
+        <SidebarInset className="">
+            <div className="flex items-center px-4 pt-4 md:hidden">
+                <SidebarTrigger />
+            </div>
             <div className="w-full h-10 my-5 text-sm font-semibold text-neutral-600"/>
 
             {/* SONGS DISPLAY */}
@@ -306,7 +309,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                     {/* Search bar and go button */}
                     <form className={`flex justify-center flex-col transition-all duration-900 ease-in-out ${
                         isPageEmpty
-                            ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-4 z-30"
+                            ? " fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-4 z-30"
                             : "top-[88vh] -translate-y-0 md:top-[90vh] w-full"
                     }`} 
                     onSubmit={handleSubmit}>
