@@ -18,6 +18,7 @@ import { saveUserBlacklist } from "@/actions/saveUserBlacklist";
 import { SwiperUpDown } from "@/components/ui/swiperUpDown"
 import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
 import { Bookmark } from "lucide-react";
+import { MusicCard } from "@/components/ui/MusicCard";
 
 export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleSong[] }) {
     const [sessionSeenSongs, setSongs] = useState<SimpleSong[]>([]);
@@ -155,19 +156,19 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
                         
                         {/* Export to spotify button */}
                         <div className="group relative p-1">
-                            <SpotifyExportButton 
+                            {/* <SpotifyExportButton 
                                 songId={song.song_id} 
                                 className="-translate-y-1 transition-transform opacity-100 hover:text-green-500/90 hover:opacity-100 opacity-80 group-hover:scale-110"
-                                iconSize="w-10 h-10"
-                                /> 
+                                iconSize="w-10 h-10" */}
+                                {/* />  */}
                                 {/* tooltip */}
-                            <span className="pointer-events-none absolute right-20 top-3 opacity-0 -translate-y-4 translate-x-6 group-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md group-hover:delay-400">
+                            {/* <span className="pointer-events-none absolute right-20 top-3 opacity-0 -translate-y-4 translate-x-6 group-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md group-hover:delay-400">
                                 Open in Spotify
-                            </span>
+                            </span> */}
                         </div>
                         
                         {/* Add to library button, BOOKMARK ICON*/}
-                        <div className="group relative">
+                        {/* <div className="group relative">
                             <button className="hover:opacity-100 opacity-80 hover:scale-110"
                                 onClick={async () => {
                                     const {success} = await addSongFromId(song.song_id); 
@@ -183,24 +184,33 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
                                     ? "fill-yellow-500"
                                     : "none"}`}
                                 />
-                            </button>
+                            </button> */}
 
                             {/* tooltip */}
-                            <span className="pointer-events-none absolute right-20 top-3 opacity-0 translate-y-8 translate-x-20 group-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md group-hover:delay-400">
+                            {/* <span className="pointer-events-none absolute right-20 top-3 opacity-0 translate-y-8 translate-x-20 group-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md group-hover:delay-400">
                                 Save to Library
                             </span>
-                        </div>
+                        </div> */}
                         
                     </div>
 
                     {/* Main Song Display */}
-                    <div className="flex flex-col mt-14 rounded rounded-lg bg-blue-100/80 z-20">
+                    {/* <div className="flex flex-col mt-14 rounded rounded-lg bg-blue-100/80 z-20">
                         <span className="m-20 text-stone-900">
                             <h2 className="font-medium text-5xl mt-4 mb-8">{song.title}</h2>
                             <p className="text-lg mb-8">{song.artist}</p>
                             <span className="text-sm absolute -translate-x-8 bottom-4 text-center">Card Index: {index}</span>
                         </span>
-                    </div>
+                    </div> */}
+                    <MusicCard
+                        songName={song.title}
+                        albumName=""
+                        artistName={song.artist}
+                        imageUrl=""
+                        songId={song.song_id}
+                        isAdded={false}
+                        buttonSize={10}    
+                    ></MusicCard>
                 </SwiperSlide> )
             )}
 
