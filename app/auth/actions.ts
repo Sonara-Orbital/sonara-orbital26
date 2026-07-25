@@ -17,7 +17,7 @@ export async function signOutAction() {
 }
 
 //ADD FRIEND ACTION
-export async function addFriend(receiver: string) {
+export async function addFriend(receiver_id: string) {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
@@ -28,24 +28,6 @@ export async function addFriend(receiver: string) {
     }
 
     const sender = user.id;
-    console.log("Sender is: " + sender);
-
-    const { data: receiverData, error: receiverError} = await supabase
-    .from("Users")
-    .select("id")
-    .like("username", receiver)
-
-    if (receiverError) {
-        console.log(receiverError.message)
-        return { success: false, error: receiverError.message}
-    }
-
-    if (!receiverData) {
-        return { success: false, error: "This Username Doesn't Exist"};
-    }
-
-    const receiver_id = receiverData[0]['id'];
-    console.log("Receiver is: " + receiver_id);
 
     const { error } = await supabase
     .from('friends')
@@ -97,7 +79,7 @@ export async function findFriends(user_id: string) {
     .or(`sender.eq.${user_id},receiver.eq.${user_id}`);
 
     if (error || !data) {
-        console.log(error.message);
+        console.log(error?.message);
         return { success: false, error: error.message};
     }
 
@@ -159,7 +141,7 @@ export async function getFriendRequests(user_id: string) {
     .eq("receiver", user_id)
 
     if (error || !data) {
-        return { success: false, error: error.message};
+        return { success: false, error: error?.message};
     }
 
     const tempList: string[] = [];
@@ -192,4 +174,30 @@ export async function deleteFriend(first_id: string, second_id: string) {
 
     return { success: true };
 
+}
+
+//SEARCH FOR USERS TO ADD FRIEND
+export async function searchUsernames(query: string) {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+        return [];
+    }
+
+    const { data, error } = await supabase
+    .from('Users')
+    .select("id, username")
+    .ilike("username", `%${query}%`)
+    .neq("id", user.id)
+    .limit(5)
+
+    if (error) {
+        console.log(error.message);
+        return []
+    }
+
+    return data
 }
