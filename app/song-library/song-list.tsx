@@ -1,165 +1,122 @@
 "use client";
 
 import { addSong } from "@/actions/songs";
-import { ArrowUpDown, ArrowUpNarrowWide, ArrowDownWideNarrow, Trash , Trash2 } from "lucide-react";
+import { ArrowUpDown, ArrowUpNarrowWide, ArrowDownWideNarrow, Trash, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { searchLibrary } from "@/actions/search";
 import { HomeSidebar } from "@/components/ui/home-sidebar";
-import { SidebarProvider, SidebarInset, Sidebar } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, Sidebar, SidebarTrigger } from "@/components/ui/sidebar";
 import { deleteSong } from "@/actions/delete";
 import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
+import { MusicCard } from "@/components/ui/MusicCard";
 
 export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
   const [isAscending, setIsAscending] = useState(false);
 
-  // Search bar for library
+  // Search state
   const [query, setQuery] = useState("");
-  const [queryResults, setQueryResults] = useState<any[]>([]);
+  const [queryResults, setQueryResults] = useState<any[] | null>(null);
 
   const handleInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const userText = event.target.value;
     setQuery(userText);
-    // console.log(query);
 
-    // Delay here //
+    if (!userText.trim()) {
+      setQueryResults(null); // Clear results if search is empty
+      return;
+    }
 
     const searchResults = await searchLibrary(userText);
-    console.log(searchResults);
     setQueryResults(searchResults);
-  }
+  };
 
-  // Display songs in user's library, displaySongs is an array of song objects
-  const displaySongs = [...(currUserSongs || [])].sort((a, b) => {
+  // Sort full user library songs
+  const sortedUserSongs = [...(currUserSongs || [])].sort((a, b) => {
     const aTime = new Date(a.created_at || 0).getTime();
     const bTime = new Date(b.created_at || 0).getTime();
     if (aTime == bTime) {
         return -1;
     }
-        return (aTime - bTime > 0 && isAscending)  // a added later th an b, b should be before a
-        ||
-        (aTime - bTime < 0 && !isAscending)
-    ? 1
-    : -1;
+    return (aTime - bTime > 0 && isAscending) || (aTime - bTime < 0 && !isAscending) ? 1 : -1;
   });
 
+  // Decide whether to show search results or the full sorted library
+  // (Note: searchLibrary returns fields like song_id, title, artist, album_art_url. 
+  // Make sure your rendered cards map the correct ID depending on whether it's a search result or library item).
+  const displaySongs = queryResults !== null ? queryResults : sortedUserSongs;
+
   return (
-        <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
-          <button
-            onClick={() => {
-              setIsAscending(!isAscending);
-              console.log("reversed");
-            }}
-            className="right-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
-          >
-            {isAscending ? "Sort Most Recent" : "Sort Oldest"}
-          </button>
-          <form
-            action={async () => {
-              await addSong({
-                id: "TRK-0000B860FC",
-                title: "Testing AAAA",
-                artist: "Pea man",
-                duration: "4.4",
-                bpm: null,
-                genre: "pop",
-                prompt: "what song i listen",
-                album_art_url: null,
-              });
-            }}
-          >
-            {/* <button type="submit" className="bg-blue-500 px-4 py-2 text-white rounded-lg">
-              TEST
-            </button> */}
-          </form>
+    <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
+      <button
+        onClick={() => {
+          setIsAscending(!isAscending);
+          console.log("reversed");
+        }}
+        className="right-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
+      >
+        {isAscending ? "Sort Most Recent" : "Sort Oldest"}
+      </button>
 
-          <header className="mb-4">
-            <h1 className="text-3xl font-bold tracking-tight">Your Library</h1>
-            <p className="text-gray-400">You have {currUserSongs?.length || 0} songs saved</p>
-          </header>
+      <header className="mb-4">
+        <h1 className="text-3xl font-bold tracking-tight">Your Library</h1>
+        <p className="text-gray-400">You have {currUserSongs?.length || 0} songs saved</p>
+      </header>
 
-          {/* SEARCH BAR */}
-          <input className="border border-black rounded-sm mb-4 pl-2 w-full max-w-150" 
-            placeholder="Search for songs..."
-            value={query}
-            onChange={handleInputChange}
-          ></input>
-          <ul className="w-full max-w-150 flex flex-col">
-            {queryResults.map((song) => (
-              <li key={song.song_id} className="flex justify-between">
-                <span className="font-bold">{song.title}</span>
-                <span className=""> {song.artist}</span>
-                {/* <span>{song}</span> */}
-              </li>
-            ))}
-          </ul>
+      {/* SEARCH BAR */}
+      <input 
+        className="border border-black rounded-sm mb-6 pl-2 w-full max-w-150 h-10" 
+        placeholder="Search for songs..."
+        value={query}
+        onChange={handleInputChange}
+      />
 
-          {/* DISPLAY SONGS */}
-          {currUserSongs?.length === 0 ? (
-            <div className="text-center p-8 rounded-xl border border-black">
-              <p className="text-black mb-4">Library is empty... Start adding songs!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-4 w-full">
-              {displaySongs.map((song) => (
-                <div
-                  key={song.id}
-                  className="group relative aspect-square overflow-hidden rounded-xl border border-black shadow-lg duration-400 hover:scale-[1.02] hover:shadow-2xl"
-                  >
-                  {song.album_art_url ? (
-                    <img  
-                      src={song.album_art_url}
-                      alt={`${song.title} cover`}
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center opacity-40 bg-blue-100">
-                      <span className="text-4xl">🎵</span>
-                    </div>
-                  )}
+      {/* DISPLAY SONGS / SEARCH RESULTS */}
+      {currUserSongs?.length === 0 ? (
+        <div className="text-center p-8 rounded-xl border border-black w-full">
+          <p className="text-black mb-4">Library is empty... Start adding songs!</p>
+        </div>
+      ) : displaySongs.length === 0 ? (
+        <div className="text-center p-8 rounded-xl border border-black w-full">
+          <p className="text-black mb-4">No songs found matching "{query}"</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 min-[2000px]:grid-cols-3 gap-5 w-full justify-items-center">
+          {displaySongs.map((song) => {
+            // Handle ID mapping differences between full library item and search result schema
+            const uniqueId = song.id || song.song_id;
+            const trackId = song.song_id;
 
-                  <div className="absolute inset-x-0 bottom-0 p-4 pt-12 flex flex-col justify-end">
-                    <h3 className="text-black font-semibold text-base truncate mb-0.5 transition-colors">
-                      {song.title}
-                    </h3>
-                    <div className="flex items-center gap-1.5 text-xs text-black/50">
-                      <span className="truncate font-medium">{song.artist}</span>
-                      <span className="text-neutral-500">•</span>
-                      <span className="text-gray-500 shrink-0">{song.genre}</span>
-                    </div>
+            return (
+              <div
+                key={uniqueId}
+                className="relative w-full max-w-sm"
+              >
+                <MusicCard
+                  songName={song.title}
+                  albumName=""
+                  artistName={song.artist}
+                  imageUrl=""
+                  songId={trackId}
+                  isAdded={false}
+                  buttonSize={10}    
+                />
+
+                <div className="relative group">
+                  <div>
+                    <button 
+                      className="absolute peer cursor-pointer opacity-0 top-4 right-4 hover:text-red-500 duration-200 group-hover:opacity-100 ease-in-out"
+                      onClick={async () => deleteSong(uniqueId)}
+                    >  
+                      <Trash2 className="h-5 w-5" />
+                    </button>
                   </div>
-
-                  <div className="relative group">
-                    {/* Delete button */}
-                    <div>
-                      <button className="peer cursor-pointer opacity-0 absolute top-4 right-4 hover:text-red-500 duration-200 group-hover:opacity-100 ease-in-out"
-                        // Delete using the id in User_saved_songs, not song id 
-                        onClick={async () => deleteSong(song.id)}>  
-                          <Trash2 className="h-5 w-5"></Trash2>
-                      </button>
-                      {/* Export tooltip */}
-                      <span className="absolute right-20 top-4 opacity-0 translate-x-9 peer-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md peer-hover:delay-400">
-                        Remove song
-                      </span>
-                    </div>
-
-                    {/* Spotify export button */}
-                    <div className="group/tooltip transition-all relative top-4 left-4 rounded-full">
-                      <SpotifyExportButton songId={song.song_id} 
-                        iconSize="h-5 w-5"
-                        className="peer opacity-0 absolute hover:text-green-500/90 transition-all duration-200 ease-in-out group-hover:opacity-100 hover:scale-110" />
-                      {/* Export tooltip */}
-                      <span className="absolute right-20 top-4 opacity-0 -translate-y-4 translate-x-1 peer-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md peer-hover:delay-400">
-                        Open in Spotify
-                      </span>
-                    </div>
-                  </div>
-                  
-
                 </div>
-              ))}
-            </div>
-          )}
-        </main>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </main>
   );
 }
