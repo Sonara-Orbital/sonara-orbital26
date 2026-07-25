@@ -9,6 +9,7 @@ import { HomeSidebar } from "@/components/ui/home-sidebar";
 import { SidebarProvider, SidebarInset, Sidebar } from "@/components/ui/sidebar";
 import { deleteSong } from "@/actions/delete";
 import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
+import { MusicCard } from "@/components/ui/MusicCard";
 
 export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
   const [isAscending, setIsAscending] = useState(false);
@@ -100,47 +101,30 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
               <p className="text-black mb-4">Library is empty... Start adding songs!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4 w-full">
+            <div className="grid grid-cols-3 gap-3 w-full">
               {displaySongs.map((song) => (
                 <div
                   key={song.id}
-                  className="group relative aspect-square overflow-hidden rounded-xl border border-black shadow-lg duration-400 hover:scale-[1.02] hover:shadow-2xl"
+                  className=""
                   >
-                  {song.album_art_url ? (
-                    <img  
-                      src={song.album_art_url}
-                      alt={`${song.title} cover`}
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center opacity-40 bg-blue-100">
-                      <span className="text-4xl">🎵</span>
-                    </div>
-                  )}
-
-                  <div className="absolute inset-x-0 bottom-0 p-4 pt-12 flex flex-col justify-end">
-                    <h3 className="text-black font-semibold text-base truncate mb-0.5 transition-colors">
-                      {song.title}
-                    </h3>
-                    <div className="flex items-center gap-1.5 text-xs text-black/50">
-                      <span className="truncate font-medium">{song.artist}</span>
-                      <span className="text-neutral-500">•</span>
-                      <span className="text-gray-500 shrink-0">{song.genre}</span>
-                    </div>
-                  </div>
+                  <MusicCard
+                    songName={song.title}
+                    albumName=""
+                    artistName={song.artist}
+                    imageUrl=""
+                    songId={song.song_id}
+                    isAdded={false}
+                    buttonSize={10}    
+                  ></MusicCard>
 
                   <div className="relative group">
                     {/* Delete button */}
                     <div>
-                      <button className="peer cursor-pointer opacity-0 absolute top-4 right-4 hover:text-red-500 duration-200 group-hover:opacity-100 ease-in-out"
+                      <button className=" absolute peer cursor-pointer opacity-0 absolute top-4 right-4 hover:text-red-500 duration-200 group-hover:opacity-100 ease-in-out"
                         // Delete using the id in User_saved_songs, not song id 
                         onClick={async () => deleteSong(song.id)}>  
                           <Trash2 className="h-5 w-5"></Trash2>
                       </button>
-                      {/* Export tooltip */}
-                      <span className="absolute right-20 top-4 opacity-0 translate-x-9 peer-hover:opacity-100 transition-all duration-300 ease-out bg-neutral-900/90 text-white text-xs font-sm px-2 py-1 rounded shadow-md peer-hover:delay-400">
-                        Remove song
-                      </span>
                     </div>
                   </div>
                 </div>
