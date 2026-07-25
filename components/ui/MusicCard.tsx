@@ -77,12 +77,13 @@ export function MusicCard({ songName, albumName, artistName, imageUrl, className
                         rel="noopener noreferrer"
                         className="block w-full min-w-0"
                     >
-                        <div className="cursor-pointer hover:underline decoration-2 text-3xl font-bold tracking-tight text-neutral-900 truncate">
+                        <div className="leading-8 cursor-pointer hover:underline decoration-2 text-3xl font-bold tracking-tight text-neutral-900 line-clamp-2"
+                            title={songName}>
                             {songName}
                         </div>
                     </a>
 
-                    <div className="flex items-baseline gap-1.5 min-w-0 pl-1">
+                    <div className="flex items-baseline gap-1.5 min-w-0 pl-1 pt-1">
                         <span className="text-neutral-500 shrink-0 text-sm">by</span>
                         <p className="text-sm font-semibold text-neutral-700 truncate">
                             {artistName}

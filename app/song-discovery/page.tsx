@@ -42,7 +42,7 @@ export default async function SongDiscoveryPage() {
                 </div>
 
                 {/* SCROLLER */}
-                <div className="fixed mt-8 h-[85vh] w-full max-w-2xl rounded-2xl bg-neutral-200 p-4">
+                <div className="fixed mt-8 h-[90vh] w-full max-w-2xl rounded-2xl bg-neutral-200/60 p-4">
                     <DoomscrollFeed currentSongs={recentSongs || []}></DoomscrollFeed>
                 </div>
                 </SidebarInset>
