@@ -82,7 +82,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
 
 
     const handleSubmit = async (e: React.SubmitEvent) => {
-        e.preventDefault()
+        e.preventDefault();
         if (!inputVal.trim()) return;
         setIsPageEmpty(false);
 
@@ -263,15 +263,16 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                                         </span> */}
                                     {/* </button> */}
                                 </form>
+
                                 <MusicCard
-                                songName={song.track_name}
-                                artistName={song.artist_name}
-                                albumName={song.album_name}
-                                imageUrl={song.album_image} 
-                                className="relative hover:scale-105 hover:shadow-xl transition-all ease-in-out duration-300"
-                                songId={song.spotify_id}
-                                isAdded={thisSongAdded}
-                                buttonSize={10}
+                                    songName={song.track_name}
+                                    artistName={song.artist_name}
+                                    albumName={song.album_name}
+                                    imageUrl={song.album_image}
+                                    className="relative hover:scale-105 hover:shadow-xl transition-all ease-in-out duration-300"
+                                    songId={song.spotify_id}
+                                    isAdded={thisSongAdded}
+                                    buttonSize={10}
                                 />
                                 {/* Spotify export icon + tooltip */}
                                 <div className="group absolute top-4 left-4 rounded-full h-10 w-10">

@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { POST } from "@/app/api/chat/route";
 import { SimpleSong } from "@/types/song";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { HomeSidebar } from "@/components/ui/home-sidebar";
 
 export const dynamic = "force-dynamic";
@@ -35,13 +35,17 @@ export default async function SongDiscoveryPage() {
 
         return <main className="flex min-h-screen items-center bg-gray-50">
             <SidebarProvider>
-            <HomeSidebar username={currUser.user_metadata.username} />
-            <SidebarInset className="fixed items-center">
+            <HomeSidebar username={currUser.user_metadata.username} /> 
+                <SidebarInset className="fixed items-center">
+                <div className="flex items-center px-4 pt-4 md:hidden">
+                    <SidebarTrigger className="absolute left-2 top-2"/>
+                </div>
+
                 {/* SCROLLER */}
-                <div className="fixed mt-8 h-[85vh] w-full max-w-2xl rounded-2xl bg-blue-300/60 p-4">
+                <div className="fixed mt-8 h-[85vh] w-full max-w-2xl rounded-2xl bg-neutral-200 p-4">
                     <DoomscrollFeed currentSongs={recentSongs || []}></DoomscrollFeed>
                 </div>
-            </SidebarInset>
+                </SidebarInset>
             </SidebarProvider>
         </main>
 }

@@ -20,6 +20,15 @@ import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
 import { Bookmark } from "lucide-react";
 import { MusicCard } from "@/components/ui/MusicCard";
 
+interface Song {
+    track_name: string;
+    artist_name: string;
+    album_name: string;
+    album_image: string;
+    track_preview: string;
+    spotify_id: string;
+}
+
 export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleSong[] }) {
     const [sessionSeenSongs, setSongs] = useState<SimpleSong[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -28,6 +37,21 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
     const [libraryIsEmpty, setLibraryIsEmpty] = useState(false);
 
     const [alreadyAdded, setAlreadyAdded] = useState<{[key: string]: boolean}>({});
+
+    async function searchSingleSong(songName: string): Promise<Song> {
+        const response = await fetch("/api/search", {
+            method: "POST",
+            headers: {"Content-Type": "application/json" },
+            body: JSON.stringify({ userInput: songName})
+        });
+
+        if (!response.ok) {
+            throw new Error(`Request Failed ${response.status}`);
+        }
+
+        const data: Song = await response.json();
+        return data;
+    }
     
     // Query first batch of songs on page load
     // Retrieve user's seen songs, update during session, send back to db after session ends
@@ -219,7 +243,7 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
             <SwiperSlide virtualIndex={sessionSeenSongs.length} className="w-full h-full">
                 <div className="w-full h-full flex flex-col justify-center items-center text-white">
                     {/* Spinner */}
-                    <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <div className="w-8 h-8 border-4 border-neutral-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                     <p className="text-black text-md animate-pulse">Loading...</p>
                 </div>
             </SwiperSlide>
