@@ -2,22 +2,18 @@ import re
 import httpx
 from typing import List, Dict
 from dotenv import load_dotenv
-from spotify_token import get_spotify_access_token
+from app.spotify_token import get_spotify_access_token
 import asyncio
-from custom_vector import extract_features, get_song_url
+from app.custom_vector import extract_features, get_song_url
 import uuid
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from database import supabase
+from app.database import supabase
 
 load_dotenv()
 
 app = FastAPI()
-
-class PlaylistInput(BaseModel):
-    user_id: str
-    playlist_url: str
 
 async def extract_tracks_from_playlist(playlist_url: str, user_id: str) -> List[Dict[str, str]]:
     tracks = []
@@ -89,11 +85,6 @@ async def fetch_spotify_tracks(playlist_id: str) -> List[Dict[str, str]]:
             print(f"Error fetching Spotify tracks: {repr(e)}")
             return []
 
-#print(asyncio.run(extract_tracks_from_playlist("https://open.spotify.com/playlist/5Zvp8pfl3jdGelql3KByj1?si=49c9123cb7f84259", "21e4c7f7-7707-4095-8352-18712e6481da")))
+#print(asyncio.run(extract_tracks_from_playlist("https://open.spotify.com/playlist/5Zvp8pfl3jdGelql3KByj1?si=49c9123cb7f84259", "8ee869cd-093a-4b28-9e7f-ff1eca1fe0eb")))
 
-@app.post("/api/add-playlist")
-async def recommend_song_scroller(inputData: PlaylistInput):
-    user_id = inputData.user_id
-    url = inputData.playlist_url
-    await extract_tracks_from_playlist(url, user_id)
 

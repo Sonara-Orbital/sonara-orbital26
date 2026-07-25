@@ -12,12 +12,12 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from app.database import supabase  # Client created in database.py
 from fastapi.middleware.cors import CORSMiddleware
 from app.mood_to_vector_converter import convert_user_mood_to_vector
+from app.playlist_fetcher import extract_tracks_from_playlist
 import random
 
 app = FastAPI()
 
 # app.include_router(recommend_router, prefix="/api")
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -240,6 +240,19 @@ async def get_mood_recommendations(InputMood: MoodInput):
         for song in records]
     
     return {"status": "success", "data": song_results}
+
+##### PLAYLIST UPLOAD ENDPOINT #######
+
+class PlaylistInput(BaseModel):
+    user_id: str
+    playlist_url: str
+
+@app.post("/api/add-playlist")
+async def playlist_upload(inputData: PlaylistInput):
+    print("endpoint HIT")
+    user_id = inputData.user_id
+    url = inputData.playlist_url
+    await extract_tracks_from_playlist(url, user_id)
 
     
 
