@@ -4,7 +4,8 @@ import { Card, CardHeader, CardFooter, CardDescription, CardContent } from "./ca
 import { ScrollArea } from "./scroll-area"
 import { useEffect, useRef, useState } from "react";
 import { Search, Check, X, UserPlus} from "lucide-react";
-import { searchUsernames, addFriend, deleteFriend, acceptFriendRequest } from "@/app/auth/actions";
+import { searchUsernames, addFriend, deleteFriend, acceptFriendRequest,  getFriendSongs } from "@/app/auth/actions";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./dialog"
 
 interface FriendCardProps {
     onClick: (e:string) => void;
@@ -19,20 +20,40 @@ interface MadeFriendProp {
     username: string;
     onRemove: (id: string) => void;
     onAccept: (id: string, username: string) => void;
+    onClick: (id: string, username: string) => void;
 }
 
-export function MadeFriendTag({username, id, userId, onRemove}: MadeFriendProp) {
+interface FriendRequestProp {
+    userId: string;
+    id: string;
+    username: string;
+    onRemove: (id: string) => void;
+    onAccept: (id: string, username: string) => void;
+}
+
+interface Song {
+    id: string;
+    title: string;
+    artist: string;
+    created_at: string
+}
+
+export function MadeFriendTag({username, id, userId, onRemove, onClick}: MadeFriendProp) {
     return (
-        <Card className="w-[90%] h-auto min-h-10 flex flex-row justify-center items-center m-2 p-2">
+        <Card className="w-[90%] h-auto min-h-10 flex flex-row justify-center items-center m-2 p-2 hover:cursor-pointer" onClick={() => onClick(id, username)}>
             <div className="flex flex-row bg-grey w-[90%] items-center justify-between">
                 <span className="text-sm font-medium leading-none">{username}</span>
-                <Button variant="ghost" onClick={() => onRemove(id)} size="icon" className="h-6 w-6"><X color="red" className="h-4 w-4" /></Button>
+                <Button variant="ghost" onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(id);
+                    }} 
+                    size="icon" className="h-6 w-6"><X color="red" className="h-4 w-4" /></Button>
             </div>
         </Card>
     )
 }
 
-export function FriendRequestTag({username, id, userId, onRemove, onAccept}: MadeFriendProp) {
+export function FriendRequestTag({username, id, userId, onRemove, onAccept}: FriendRequestProp) {
     return (
         <Card className="w-[90%] h-auto min-h-10 flex flex-row justify-center items-center m-2 p-2">
             <div className="flex flex-row bg-grey w-[90%] items-center justify-between">
@@ -54,6 +75,12 @@ export function FriendsCard({ onClick, friendsList, requestsList, userId }: Frie
     const [loading, setLoading] = useState(false);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [songDialogOpen, setSongDialogOpen] = useState(false);
+    const [selectedFriend, setSelectedFriend] = useState<{id: string; username: string} | null>(null);
+    const [songs, setSongs] = useState<Song[]>([]);
+    const [songsLoading, setSongsLoading] = useState(false);
+    const [songsError, setSongsError] = useState<string | null>(null);
+
 
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -165,6 +192,36 @@ export function FriendsCard({ onClick, friendsList, requestsList, userId }: Frie
         }
     }
 
+    async function handleFriendClick(id: string, username: string) {
+        setSelectedFriend({id, username});
+        setSongDialogOpen(true);
+        setSongsLoading(true);
+        setSongsError(null);
+
+        try {
+            const result = await getFriendSongs(id);
+            if (!Array.isArray(result)) {
+                throw new Error(result.error);
+            }
+            setSongs(result as Song[]);
+        } catch (err) {
+            console.error("Failed to fetch recent songs", err);
+            setSongsError("Couldnt load Songs");
+            setSongs([]);
+        } finally {
+            setSongsLoading(false);
+        }
+    }
+
+    function handleDialogChange(open: boolean) {
+        setSongDialogOpen(open);
+        if (!open) {
+            setSongs([]);
+            setSelectedFriend(null);
+            setSongsError(null);
+        }
+    }
+
     const testFriends = ["Friend 1", "Friend 2", "Friend 3", "Friend 4", "Friend 5"]
 
     return (
@@ -176,7 +233,7 @@ export function FriendsCard({ onClick, friendsList, requestsList, userId }: Frie
                 <CardContent className="flex flex-col flex-1 overflow-visible bg-neutral-200">
                     <ScrollArea className="flex-1 overflow-y-auto mb-2">
                         {friends.map((item, index) => (
-                            <MadeFriendTag key={item.id} onAccept={() => handleAcceptRequest(item.id, item.username)} userId={userId} id={item.id} username={item.username} onRemove={handleRemoveFriend}/>
+                            <MadeFriendTag onClick={handleFriendClick} key={item.id} onAccept={() => handleAcceptRequest(item.id, item.username)} userId={userId} id={item.id} username={item.username} onRemove={handleRemoveFriend}/>
                         ))}
                     </ScrollArea>
                     <div className="relative flex flex-row gap-2 shrink-0" ref={containerRef}>
@@ -219,6 +276,27 @@ export function FriendsCard({ onClick, friendsList, requestsList, userId }: Frie
                     </ScrollArea>
                 </CardContent>
             </Card>
+            <Dialog open={songDialogOpen} onOpenChange={handleDialogChange}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{selectedFriend?.username}'s Recent Songs</DialogTitle>
+                        <DialogDescription>Latest 5 Songs added to their library</DialogDescription>
+                    </DialogHeader>
+
+                    {songsLoading && (
+                        <div className="text-sm text-muted-foreground py-4">Loading</div>
+                    )}
+                    {!songsLoading && !songsError && songs.length === 0 && (
+                        <div className="text=sm text-muted-foreground py-4">No Songs Found</div>
+                    )}
+                    {!songsLoading && songs.map((song) => (
+                        <div key={song.id} className="flex flex-col py-2 border-b last:border-0">
+                            <span className="text-sm font-medium">{song.title}</span>
+                            <span className="text-xs text-muted-foreground">{song.artist}</span>
+                        </div>
+                    ))}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

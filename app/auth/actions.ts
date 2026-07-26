@@ -139,6 +139,7 @@ export async function getFriendRequests(user_id: string) {
     .from('friends')
     .select("sender: sender (id, username)")
     .eq("receiver", user_id)
+    .eq("status", "pending")
 
     if (error || !data) {
         return { success: false, error: error?.message};
@@ -200,4 +201,22 @@ export async function searchUsernames(query: string) {
     }
 
     return data
+}
+
+export async function getFriendSongs (user_id: string) {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const {data, error}  = await supabase
+    .from("User_saved_songs")
+    .select("id, title, artist, created_at")
+    .eq("user_id", user_id)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+    if (error) {
+        return { error: error.message};
+    }
+
+    return data;
 }
