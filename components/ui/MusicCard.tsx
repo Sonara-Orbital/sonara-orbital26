@@ -55,7 +55,7 @@ export function MusicCard({ songName, albumName, artistName, imageUrl, className
     }, [songName]);
 
     return (
-        <Card className={`hover:scale-110 relative mx-auto w-full max-w-sm shadow ${className} duration-300`}>
+        <Card className={`relative mx-auto w-full max-w-sm shadow ${className} duration-300`}>
             <img 
                 src={imgSrc}
                 alt="Album Cover not Available"

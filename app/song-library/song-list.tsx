@@ -177,7 +177,7 @@ export default function SongList({ currUserSongs, userId }: SongListProps) {
           <p className="text-black mb-4">No songs found matching "{query}"</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 min-[2000px]:grid-cols-3 gap-5 w-full justify-items-center">
+        <div className="grid grid-cols-2 min-[2000px]:grid-cols-3 gap-7 w-full justify-items-center">
           {displaySongs.map((song) => {
             // Map only search results
             const uniqueId = song.id || song.song_id;
@@ -186,26 +186,28 @@ export default function SongList({ currUserSongs, userId }: SongListProps) {
             return (
               <div
                 key={uniqueId}
-                className="relative w-full max-w-sm"
+                className="relative w-full max-w-sm pb-2"
               >
-                <MusicCard
-                  songName={song.title}
-                  albumName=""
-                  artistName={song.artist}
-                  imageUrl=""
-                  songId={trackId}
-                  isAdded={false}
-                  buttonSize={10}    
-                />
+                <div className="hover:scale-110 transition ease-in-out duration-300">
+                  <MusicCard
+                    songName={song.title}
+                    albumName=""
+                    artistName={song.artist}
+                    imageUrl=""
+                    songId={trackId}
+                    isAdded={false}
+                    buttonSize={10}    
+                  />
 
-                <div className="relative group">
-                  <div>
-                    <button 
-                      className="absolute peer cursor-pointer opacity-0 top-4 right-4 hover:text-red-500 duration-200 group-hover:opacity-100 ease-in-out"
-                      onClick={async () => deleteSong(uniqueId)}
-                    >  
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                  <div className="relative group">
+                    <div>
+                      <button 
+                        className="z-20 absolute peer cursor-pointer opacity-100 right-3 -top-11 hover:text-red-500 duration-200 group-hover:opacity-100 ease-in-out"
+                        onClick={async () => deleteSong(uniqueId)}
+                      >  
+                        <Trash2 className="h-8 w-8" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
