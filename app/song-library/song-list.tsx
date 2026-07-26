@@ -202,10 +202,10 @@ export default function SongList({ currUserSongs, userId }: SongListProps) {
                   <div className="relative group">
                     <div>
                       <button 
-                        className="z-20 absolute peer cursor-pointer opacity-100 right-3 -top-11 hover:text-red-500 duration-200 group-hover:opacity-100 ease-in-out"
+                        className="z-20 absolute peer cursor-pointer opacity-100 right-4 -top-10 hover:scale-110 hover:text-red-500 duration-200 group-hover:opacity-100 ease-in-out"
                         onClick={async () => deleteSong(uniqueId)}
                       >  
-                        <Trash2 className="h-8 w-8" />
+                        <Trash2 className="h-6 w-6" />
                       </button>
                     </div>
                   </div>
