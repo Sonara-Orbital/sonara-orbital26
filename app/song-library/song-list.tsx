@@ -41,9 +41,6 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
     return (aTime - bTime > 0 && isAscending) || (aTime - bTime < 0 && !isAscending) ? 1 : -1;
   });
 
-  // Decide whether to show search results or the full sorted library
-  // (Note: searchLibrary returns fields like song_id, title, artist, album_art_url. 
-  // Make sure your rendered cards map the correct ID depending on whether it's a search result or library item).
   const displaySongs = queryResults !== null ? queryResults : sortedUserSongs;
 
   return (
@@ -65,7 +62,7 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
 
       {/* SEARCH BAR */}
       <input 
-        className="border border-black rounded-sm mb-6 pl-2 w-full max-w-150 h-10" 
+        className="border border-black rounded-sm mb-8 pl-2 w-full max-w-150 h-10" 
         placeholder="Search for songs..."
         value={query}
         onChange={handleInputChange}
@@ -83,7 +80,7 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
       ) : (
         <div className="grid grid-cols-2 min-[2000px]:grid-cols-3 gap-5 w-full justify-items-center">
           {displaySongs.map((song) => {
-            // Handle ID mapping differences between full library item and search result schema
+            // Map only search results
             const uniqueId = song.id || song.song_id;
             const trackId = song.song_id;
 
