@@ -14,6 +14,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.mood_to_vector_converter import convert_user_mood_to_vector
 from app.playlist_fetcher import extract_tracks_from_playlist
 import random
+from app.mood_recommender import router as recommend_router
+from app.database import supabase  # Client created in database.py
+from fastapi import HTTPException
+from app.custom_vector import extract_features, get_song_url
+import uuid
 
 app = FastAPI()
 
@@ -49,7 +54,7 @@ id_to_index = {song_id: index for (index, song_id) in enumerate(song_idxs)}
 ### SET THE NUMBER OF RESULT SONGS FROM RECOMMENDER###
 song_count = 6
 
-def get_neighbours_by_vector(song_vector: list, song_id: str) -> list[str]:
+def get_neighbours_by_vector(song_vector: list, song_id: str="") -> list[str]:
     vector = np.array(song_vector).reshape(1, -1)
 
     distances, indices = nn_model.kneighbors(vector, song_count + 1)
@@ -85,12 +90,17 @@ def recommender(song_name: str, artist_name="") -> list[str]:
         song = supabase.table("Songs").select("id").ilike("artist_name", artist_name).ilike("track_name", song_name).execute().data
 
     if not song:
-        return []
+        song_url = get_song_url(song_name, artist_name)
+        id = str(uuid.uuid4())
+        vec = extract_features(song_url, id)
+        results = get_neighbours_by_vector(vec)
+    else:
+        song_id = song[0]["id"]
+        results = get_raw_neighbours(song_id, 5, [])
+
     
     #print(distances)
     #print(indices)
-
-    results = get_raw_neighbours(song, song_count, [])
     
     #print(results)
     #print("===========================================")
@@ -146,7 +156,7 @@ def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackList
     if not seed_song_ids:
         raise ValueError("seed_song_ids cannot be empty")
 
-    # 1. Get embeddings for the input pool of songs
+    # Get embeddings for the input pool of songs
     records = supabase.table("Song_Vectors").select("id", "embeddings")\
         .not_.in_("id", blackListedSongIds).in_("id", seed_song_ids).execute().data
     if not records:
@@ -154,19 +164,19 @@ def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackList
         print("SEED SONG IDS", seed_song_ids)
         return []
     
-    # 2. Put embedding into numpy arrray
+    # Put embedding into numpy arrray
     vectors = [np.array(json.loads(r["embeddings"])) for r in records]
     
-    # 3. Create average vector
+    # Create average vector
     composite_vector = np.mean(vectors, axis=0).reshape(1, -1)
 
-    # 4. Run knn on average vector
+    # Run knn on average vector
     distances, indices = nn_model.kneighbors(composite_vector, limit + len(seed_song_ids))
     indices = indices.flatten()
 
-    # 5. Filter out 5 initial songs from the raw results
+    # Filter out 5 initial songs from the raw results
     raw_ids = [song_idxs[i] for i in indices if song_idxs[i] not in seed_song_ids]
-    print("RAW", raw_ids)
+    # print("RAW", raw_ids)
     return raw_ids[:limit]
 
 
@@ -177,29 +187,48 @@ class SimpleSong(BaseModel):
 
 ### SCROLLER RECOMMENDER recommends songs excluding seen and library songs, return list of SimpleSong's
 def scroller_recommender(user_id: str, blackListIds: list[str]) -> list[SimpleSong]:
-    # Get last 5 added songs
+    # Use last 10 library songs to get vector
     songResponse = supabase.table("User_saved_songs").select("song_id")\
-        .eq("user_id", user_id).order("created_at", desc=True).limit(5).execute().data
-    last_five_ids = [row["song_id"] for row in songResponse]
-    print(last_five_ids, "LAST FIVE")
+        .eq("user_id", user_id).order("created_at", desc=True).limit(10).execute().data
+    last_ids = [row["song_id"] for row in songResponse]
 
-    seed_id_set = set(last_five_ids)
+    if not last_ids:
+        return []
+
+    seed_id_set = set(last_ids)
     blackListedSongIds = [song_id for song_id in (blackListIds or []) if song_id not in seed_id_set]
     blackListedSongIds = list(dict.fromkeys(blackListedSongIds))
-    print("BLACKLIST_EXCLUDING_SEEDS", blackListedSongIds)
 
-    raw_ids = get_raw_neighbours_from_pool(last_five_ids, 30, blackListedSongIds)
-    resData = supabase.table("Songs").select("id", "track_name", "artist_name")\
-        .in_("id", raw_ids).not_.in_("id", blackListedSongIds)\
-        .execute().data
-    
-    # Format and choose the 5 most accurate
+    # Get 100 song recommendations
+    raw_ids = get_raw_neighbours_from_pool(last_ids, 100, blackListedSongIds)
+
+    # Fallback for all songs blacklisted: get random songs from db
+    if not raw_ids:
+        print("KNN pool exhausted, getting fallback song")
+        fallback_res = supabase.table("Songs").select("id", "track_name", "artist_name")\
+            .not_.in_("id", blackListIds if blackListIds else ["none"])\
+            .limit(20)\
+            .execute().data
+        
+        random.shuffle(fallback_res)
+        resData = fallback_res[:8]
+    else:
+        # Get data for song
+        resData = supabase.table("Songs").select("id", "track_name", "artist_name")\
+            .in_("id", raw_ids).not_.in_("id", blackListIds if blackListIds else ["none"])\
+            .execute().data
+        
+        # Shuffle slightly or slice the top results
+        random.shuffle(resData)
+        resData = resData[:8]
+
+    # Format into SimpleSong objects
     formatted_res = [
         {
             "song_id": generated_song["id"],
             "title": generated_song["track_name"],
             "artist": generated_song["artist_name"]
-        } for generated_song in resData[:5]
+        } for generated_song in resData
     ]
     return formatted_res
 
