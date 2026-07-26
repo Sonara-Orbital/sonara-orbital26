@@ -117,9 +117,9 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                         artistName
                     })
                 });
-                console.log("RES", res.data);
+                console.log("RES", res);
 
-                // Add message to turns
+
 
             // SEARCH IN MOOD MODE
             } else if (searchMode == "mood") {

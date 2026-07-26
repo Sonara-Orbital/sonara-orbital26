@@ -188,7 +188,7 @@ export default function SongList({ currUserSongs, userId }: SongListProps) {
                 key={uniqueId}
                 className="relative w-full max-w-sm pb-2"
               >
-                <div className="hover:scale-110 transition ease-in-out duration-300">
+                <div className="hover:scale-110 hover:shadow-2xl transition ease-in-out duration-300">
                   <MusicCard
                     songName={song.title}
                     albumName=""
