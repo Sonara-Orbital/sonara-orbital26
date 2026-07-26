@@ -54,7 +54,7 @@ id_to_index = {song_id: index for (index, song_id) in enumerate(song_idxs)}
 ### SET THE NUMBER OF RESULT SONGS FROM RECOMMENDER###
 song_count = 6
 
-def get_neighbours_by_vector(song_vector: list, song_id: str) -> list[str]:
+def get_neighbours_by_vector(song_vector: list, song_id: str="") -> list[str]:
     vector = np.array(song_vector).reshape(1, -1)
 
     distances, indices = nn_model.kneighbors(vector, song_count + 1)
