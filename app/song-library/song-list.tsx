@@ -5,7 +5,6 @@ import { Plus, ArrowUpDown, ArrowUpNarrowWide, ArrowDownWideNarrow, Trash , Tras
 import Link from "next/link";
 import { useState } from "react";
 import { searchLibrary } from "@/actions/search";
-import { HomeSidebar } from "@/components/ui/home-sidebar";
 import { SidebarProvider, SidebarInset, Sidebar, SidebarTrigger } from "@/components/ui/sidebar";
 import { deleteSong } from "@/actions/delete";
 import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
@@ -14,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { MusicCard } from "@/components/ui/MusicCard";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface SongListProps {
   currUserSongs: any,
@@ -84,10 +84,23 @@ export default function SongList({ currUserSongs, userId }: SongListProps) {
 
   return (
         <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
-          <button
-            className="left-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
-            onClick={() => setUploadOpen(!uploadOpen)}
-          ><Plus/></button>
+          
+
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className="left-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
+                  onClick={() => setUploadOpen(!uploadOpen)}
+                ><Plus/>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Add songs from Spotify
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
