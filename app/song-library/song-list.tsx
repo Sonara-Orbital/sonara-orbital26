@@ -1,7 +1,7 @@
 "use client";
 
 import { addSong } from "@/actions/songs";
-import { ArrowUpDown, ArrowUpNarrowWide, ArrowDownWideNarrow, Trash, Trash2 } from "lucide-react";
+import { Plus, ArrowUpDown, ArrowUpNarrowWide, ArrowDownWideNarrow, Trash , Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { searchLibrary } from "@/actions/search";
@@ -9,10 +9,22 @@ import { HomeSidebar } from "@/components/ui/home-sidebar";
 import { SidebarProvider, SidebarInset, Sidebar, SidebarTrigger } from "@/components/ui/sidebar";
 import { deleteSong } from "@/actions/delete";
 import { SpotifyExportButton } from "@/components/ui/SpotifyExportButton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 import { MusicCard } from "@/components/ui/MusicCard";
 
-export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
+interface SongListProps {
+  currUserSongs: any,
+  userId: string
+}
+
+export default function SongList({ currUserSongs, userId }: SongListProps) {
+  const router = useRouter();
   const [isAscending, setIsAscending] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [inputVal, setInputValue] = useState("")
 
   // Search state
   const [query, setQuery] = useState("");
@@ -42,23 +54,97 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
   });
 
   const displaySongs = queryResults !== null ? queryResults : sortedUserSongs;
+  
+  async function handleUpload() {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    console.log(API_URL)
+    try {
+      const res = await fetch(`${API_URL}/api/add-playlist`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json" },
+          body: JSON.stringify({ 
+              user_id: userId,
+              playlist_url: inputVal
+          })
+      });
+      if (!res.ok) {
+        console.error(`upload failed with status ${res.status}`, await res.text());
+        return;
+      }
+      const data = await res.json()
+      console.log("playlist added")
+      setInputValue("")
+      setUploadOpen(false);
+      router.refresh();
+    } catch (err) {
+      console.error("Network or server error", err)
+    }
+
+  }
 
   return (
-    <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
-      <button
-        onClick={() => {
-          setIsAscending(!isAscending);
-          console.log("reversed");
-        }}
-        className="right-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
-      >
-        {isAscending ? "Sort Most Recent" : "Sort Oldest"}
-      </button>
+        <main className="w-full mx-auto max-w-5xl p-8 flex flex-col items-center">
+          <button
+            className="left-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
+            onClick={() => setUploadOpen(!uploadOpen)}
+          ><Plus/></button>
+          <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Playlist Upload</DialogTitle>
+                <DialogDescription>
+                  Add in the spotify share URL of the public playlist you wish to upload
+                </DialogDescription>
+              </DialogHeader>
 
-      <header className="mb-4">
-        <h1 className="text-3xl font-bold tracking-tight">Your Library</h1>
-        <p className="text-gray-400">You have {currUserSongs?.length || 0} songs saved</p>
-      </header>
+              {/* Form Content */}
+              <div className="py-4">
+                <Input
+                  placeholder="https://open.spotify.com/playlist/..."
+                  value={inputVal}
+                  onChange={(e) => setInputValue(e.target.value)}
+                />
+              </div>
+
+              <DialogFooter>
+                <Button type="button" onClick={handleUpload}>
+                  Upload
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <button
+            onClick={() => {
+              setIsAscending(!isAscending);
+              console.log("reversed");
+            }}
+            className="right-10 absolute bg-neutral-900 text-white hover:bg-neutral-900/70 p-1.5 rounded-md"
+          >
+            {isAscending ? "Sort Most Recent" : "Sort Oldest"}
+          </button>
+          <form
+            action={async () => {
+              await addSong({
+                id: "TRK-0000B860FC",
+                title: "Testing AAAA",
+                artist: "Pea man",
+                duration: "4.4",
+                bpm: null,
+                genre: "pop",
+                prompt: "what song i listen",
+                album_art_url: null,
+              });
+            }}
+          >
+            {/* <button type="submit" className="bg-blue-500 px-4 py-2 text-white rounded-lg">
+              TEST
+            </button> */}
+          </form>
+
+          <header className="mb-4">
+            <h1 className="text-3xl font-bold tracking-tight">Your Library</h1>
+            <p className="text-gray-400">You have {currUserSongs?.length || 0} {currUserSongs?.length == 1 ? "song" : "songs"} saved</p>
+          </header>
 
       {/* SEARCH BAR */}
       <input 
@@ -73,7 +159,7 @@ export default function SongList({ currUserSongs }: { currUserSongs: any[] }) {
         <div className="text-center p-8 rounded-xl border border-black w-full">
           <p className="text-black mb-4">Library is empty... Start adding songs!</p>
         </div>
-      ) : displaySongs.length === 0 ? (
+      ) : sortedUserSongs.length === 0 ? (
         <div className="text-center p-8 rounded-xl border border-black w-full">
           <p className="text-black mb-4">No songs found matching "{query}"</p>
         </div>
