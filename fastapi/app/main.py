@@ -14,6 +14,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.mood_to_vector_converter import convert_user_mood_to_vector
 from app.playlist_fetcher import extract_tracks_from_playlist
 import random
+from app.mood_recommender import router as recommend_router
+from app.database import supabase  # Client created in database.py
+from fastapi import HTTPException
+from app.custom_vector import extract_features, get_song_url
+import uuid
 
 app = FastAPI()
 
@@ -85,12 +90,17 @@ def recommender(song_name: str, artist_name="") -> list[str]:
         song = supabase.table("Songs").select("id").ilike("artist_name", artist_name).ilike("track_name", song_name).execute().data
 
     if not song:
-        return []
+        song_url = get_song_url(song_name, artist_name)
+        id = str(uuid.uuid4())
+        vec = extract_features(song_url, id)
+        results = get_neighbours_by_vector(vec)
+    else:
+        song_id = song[0]["id"]
+        results = get_raw_neighbours(song_id, 5, [])
+
     
     #print(distances)
     #print(indices)
-
-    results = get_raw_neighbours(song, song_count, [])
     
     #print(results)
     #print("===========================================")
