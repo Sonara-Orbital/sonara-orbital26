@@ -1,4 +1,3 @@
-import { New_Amsterdam } from 'next/font/google';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -13,6 +12,9 @@ export async function POST(request: Request) {
         const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=musicTrack&limit=1`);
         if (!res.ok) {throw new Error(`itunes error: ${res.status}`)}
         const data = await res.json();
+        if (!query || typeof query !== "string" || !query.trim()) {
+            return NextResponse.json({ error: "No valid query provided" }, { status: 400 });
+        }
 
         if (data.results && data.results.length > 0) {
             const track = data.results[0];

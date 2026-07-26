@@ -115,7 +115,7 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         console.log("YOUR SEEN SONGS ARE", sessionSeenSongs, " and Index is ", currIndex, "and length is ", sessionSeenSongs.length);
 
         // GET NEW 5 SONG BATCH EVERY 5 SCROLLS
-        if (currIndex == sessionSeenSongs.length - 2 && !isLoading) {
+        if (currIndex == sessionSeenSongs.length - 4) {
             console.log("RECOMMENDING NEW SONGS...")
 
             setIsLoading(true);
@@ -161,7 +161,7 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
         onSlideChange={(swiper) => {
             // const currIndex = swiper.activeIndex;
             handleSwipeNext(swiper);
-            console.log(libraryIsEmpty, "LIBRARY IS EMPTY CANT ADD");
+            console.log("SLIDE CHANGE")
         }}
         >
         <SwiperUpDown />

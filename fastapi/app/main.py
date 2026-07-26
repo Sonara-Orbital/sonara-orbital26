@@ -166,7 +166,7 @@ def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackList
 
     # 5. Filter out 5 initial songs from the raw results
     raw_ids = [song_idxs[i] for i in indices if song_idxs[i] not in seed_song_ids]
-    print("RAW", raw_ids)
+    # print("RAW", raw_ids)
     return raw_ids[:limit]
 
 
@@ -177,29 +177,48 @@ class SimpleSong(BaseModel):
 
 ### SCROLLER RECOMMENDER recommends songs excluding seen and library songs, return list of SimpleSong's
 def scroller_recommender(user_id: str, blackListIds: list[str]) -> list[SimpleSong]:
-    # Get last 5 added songs
+    # Use last 10 library songs to get vector
     songResponse = supabase.table("User_saved_songs").select("song_id")\
-        .eq("user_id", user_id).order("created_at", desc=True).limit(5).execute().data
-    last_five_ids = [row["song_id"] for row in songResponse]
-    print(last_five_ids, "LAST FIVE")
+        .eq("user_id", user_id).order("created_at", desc=True).limit(10).execute().data
+    last_ids = [row["song_id"] for row in songResponse]
 
-    seed_id_set = set(last_five_ids)
+    if not last_ids:
+        return []
+
+    seed_id_set = set(last_ids)
     blackListedSongIds = [song_id for song_id in (blackListIds or []) if song_id not in seed_id_set]
     blackListedSongIds = list(dict.fromkeys(blackListedSongIds))
-    print("BLACKLIST_EXCLUDING_SEEDS", blackListedSongIds)
 
-    raw_ids = get_raw_neighbours_from_pool(last_five_ids, 30, blackListedSongIds)
-    resData = supabase.table("Songs").select("id", "track_name", "artist_name")\
-        .in_("id", raw_ids).not_.in_("id", blackListedSongIds)\
-        .execute().data
-    
-    # Format and choose the 5 most accurate
+    # Get 100 song recommendations
+    raw_ids = get_raw_neighbours_from_pool(last_ids, 100, blackListedSongIds)
+
+    # Fallback for all songs blacklisted: get random songs from db
+    if not raw_ids:
+        print("KNN pool exhausted, getting fallback song")
+        fallback_res = supabase.table("Songs").select("id", "track_name", "artist_name")\
+            .not_.in_("id", blackListIds if blackListIds else ["none"])\
+            .limit(20)\
+            .execute().data
+        
+        random.shuffle(fallback_res)
+        resData = fallback_res[:8]
+    else:
+        # Get data for song
+        resData = supabase.table("Songs").select("id", "track_name", "artist_name")\
+            .in_("id", raw_ids).not_.in_("id", blackListIds if blackListIds else ["none"])\
+            .execute().data
+        
+        # Shuffle slightly or slice the top results
+        random.shuffle(resData)
+        resData = resData[:8]
+
+    # Format into SimpleSong objects
     formatted_res = [
         {
             "song_id": generated_song["id"],
             "title": generated_song["track_name"],
             "artist": generated_song["artist_name"]
-        } for generated_song in resData[:5]
+        } for generated_song in resData
     ]
     return formatted_res
 
