@@ -146,7 +146,7 @@ def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackList
     if not seed_song_ids:
         raise ValueError("seed_song_ids cannot be empty")
 
-    # 1. Get embeddings for the input pool of songs
+    # Get embeddings for the input pool of songs
     records = supabase.table("Song_Vectors").select("id", "embeddings")\
         .not_.in_("id", blackListedSongIds).in_("id", seed_song_ids).execute().data
     if not records:
@@ -154,17 +154,17 @@ def get_raw_neighbours_from_pool(seed_song_ids: list[str], limit: int, blackList
         print("SEED SONG IDS", seed_song_ids)
         return []
     
-    # 2. Put embedding into numpy arrray
+    # Put embedding into numpy arrray
     vectors = [np.array(json.loads(r["embeddings"])) for r in records]
     
-    # 3. Create average vector
+    # Create average vector
     composite_vector = np.mean(vectors, axis=0).reshape(1, -1)
 
-    # 4. Run knn on average vector
+    # Run knn on average vector
     distances, indices = nn_model.kneighbors(composite_vector, limit + len(seed_song_ids))
     indices = indices.flatten()
 
-    # 5. Filter out 5 initial songs from the raw results
+    # Filter out 5 initial songs from the raw results
     raw_ids = [song_idxs[i] for i in indices if song_idxs[i] not in seed_song_ids]
     # print("RAW", raw_ids)
     return raw_ids[:limit]
