@@ -184,7 +184,7 @@ export default function DoomscrollFeed({ currentSongs }: { currentSongs: SimpleS
                         songId={song.song_id}
                         isAdded={false}
                         buttonSize={10}  
-                        className="!text-left"  
+                        className="!text-left hover:scale-105"  
                     ></MusicCard>
 
                 </SwiperSlide> )

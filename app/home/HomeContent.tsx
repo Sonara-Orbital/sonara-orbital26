@@ -117,7 +117,7 @@ export default function HomeContent({ userMetadata, children }: HomeContentProps
                         artistName
                     })
                 });
-                console.log("RES", res);
+                console.log("RES", res.data);
 
                 // Add message to turns
 

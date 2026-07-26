@@ -81,6 +81,7 @@ def get_raw_neighbours(song_id: str, limit: int, blackListedSongIds: list[str]) 
 def recommender(song_name: str, artist_name="") -> list[str]:
     if (artist_name==""):
         song = supabase.table("Songs").select("id").ilike("track_name", song_name).execute().data
+        print("hello")
     else:
         song = supabase.table("Songs").select("id").ilike("artist_name", artist_name).ilike("track_name", song_name).execute().data
 
@@ -120,6 +121,7 @@ def recommender(song_name: str, artist_name="") -> list[str]:
 # RECOMMENDER ENDPOINT
 @app.post("/api/process")
 async def recommend_song(inputData: DataInput):
+    print("INPUT", inputData)
     try:
         recommender_res = recommender(inputData.songName, inputData.artistName)
         result = [
