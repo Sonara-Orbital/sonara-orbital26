@@ -220,3 +220,48 @@ export async function getFriendSongs (user_id: string) {
 
     return data;
 }
+
+export async function updateFavorites(userId: string, favArtist: string, favSong: string) {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { error } = await supabase
+        .from("Users")
+        .update({
+            favorite_artist: favArtist,
+            favorite_song: favSong,
+        })
+        .eq("id", userId);
+
+    if (error) {
+        return {success: false, error: error.message};
+    }
+
+    revalidatePath("/profile");
+    return { success: true};
+
+}
+
+export async function updateProfile(userId: string, name: string, avatarUrl: string | null) {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const updates: { name: string; avatar_url?: string } = { name };
+    if (avatarUrl) updates.avatar_url = avatarUrl;
+
+    const { data, error } = await supabase
+        .from("Users")
+        .update(updates)
+        .eq("id", userId)
+        .select();
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+    if (!data || data.length === 0) {
+        return { success: false, error: "Update blocked — check your RLS policy." };
+    }
+
+    revalidatePath("/profile");
+    return { success: true };
+}
