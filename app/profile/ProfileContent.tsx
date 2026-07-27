@@ -53,7 +53,7 @@ export default function ProfileContent({ userProfile, friendsList, requestsList,
                 <SidebarInset>
                     <div className="flex flex-row w-full">
                         <div className="w-[70%] p-5 flex flex-col gap-5">
-                            <ProfileInfoCard userId={userId} initialName={userProfile.name}  initialAvatarUrl={userProfile.avatar_url} joinDate={joinDate} />
+                            <ProfileInfoCard onSignOut={handleSignOut} isSigningOut={isPending} userId={userId} initialName={userProfile.name}  initialAvatarUrl={userProfile.avatar_url} joinDate={joinDate} />
                             <FavoritesCard userId={userId} initialFavoriteArtist={userProfile.favorite_artist} initialFavoriteSong={userProfile.favorite_song} />
                         </div>
                         <div className="w-[30%] h-full p-5">
