@@ -264,7 +264,7 @@ export function FriendsCard({ onClick, friendsList, requestsList, userId }: Frie
                     </div>
                 </CardContent>
             </Card>
-            <Card className="flex flex-col py-5 min-h-0 bg-neutral-200 border-[#77797a] border-1 overflow-hidden">
+            <Card className="flex flex-col py-5 min-h-37 bg-neutral-200 border-[#77797a] border-1 overflow-hidden">
                 <CardHeader className="flex flex-row bg-neutral-100 py-3 -mt-5 -mx-5">
                     <p className="pl-4">Friend Requests</p>
                 </CardHeader>
