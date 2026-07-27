@@ -8,15 +8,18 @@ import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { updateProfile } from "@/app/auth/actions";
 import { uploadAvatar } from "@/utils/supabase/upload-avatar";
+import { LogOut } from "lucide-react";
 
 interface ProfileInfoCardProps {
     userId: string;
     initialName: string;
     initialAvatarUrl: string | null;
     joinDate: string;
+    onSignOut: () => void;
+    isSigningOut: boolean;
 }
 
-export function ProfileInfoCard({ userId, initialName, initialAvatarUrl, joinDate }: ProfileInfoCardProps) {
+export function ProfileInfoCard({ onSignOut, isSigningOut, userId, initialName, initialAvatarUrl, joinDate }: ProfileInfoCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(initialName ?? "");
     const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
@@ -81,7 +84,11 @@ export function ProfileInfoCard({ userId, initialName, initialAvatarUrl, joinDat
     const displayUrl = previewUrl ?? avatarUrl;
 
     return (
-        <Card>
+        <Card className="relative">
+            <Button variant="ghost" size="icon" className="absolute top-3 right-3 h-8 w-8" 
+            onClick={onSignOut} disabled={isSigningOut} aria-label="Sign out">
+                <LogOut className="h-4 w-4"/> 
+            </Button>
             <CardHeader>
                 <CardTitle>Profile</CardTitle>
             </CardHeader>
