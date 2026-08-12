@@ -157,7 +157,7 @@ def extract_features (track_url: str, task_id: str):
         response = requests.get(track_url, headers=headers, stream=True, timeout=15)
         response.raise_for_status()
 
-        with open(input_audio, 'wb') as f:
+        with open(input_audio,   'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
 
