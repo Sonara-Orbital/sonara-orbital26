@@ -11,6 +11,8 @@ import { addFriend } from "../auth/actions";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
+import { ProfileInfoCard } from "@/components/ui/profile-info-card";
+import { FavoritesCard } from "@/components/ui/favorites-card";
 
 interface ProfileContentProps {
     userProfile: any,
@@ -50,8 +52,9 @@ export default function ProfileContent({ userProfile, friendsList, requestsList,
             <HomeSidebar username={username} className=""/>
                 <SidebarInset>
                     <div className="flex flex-row w-full">
-                        <div className="w-[70%]">
-                            <p>Other Stuff</p>
+                        <div className="w-[70%] p-5 flex flex-col gap-5">
+                            <ProfileInfoCard onSignOut={handleSignOut} isSigningOut={isPending} userId={userId} initialName={userProfile.name}  initialAvatarUrl={userProfile.avatar_url} joinDate={joinDate} />
+                            <FavoritesCard userId={userId} initialFavoriteArtist={userProfile.favorite_artist} initialFavoriteSong={userProfile.favorite_song} />
                         </div>
                         <div className="w-[30%] h-full p-5">
                             <FriendsCard userId={userId} requestsList={requestsList} onClick={addAFriend} friendsList={friendsList}/>

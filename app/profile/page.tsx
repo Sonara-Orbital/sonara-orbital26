@@ -23,7 +23,7 @@ export default async function UserProfile({ children }: {children: React.ReactNo
     
     const { data: userProfile, error: dbError } = await supabase
     .from('Users')
-    .select('id, username, name, avatar_url, created_at')
+    .select('*')
     .eq('id', userId)
     .single();
 
