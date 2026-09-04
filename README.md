@@ -1,36 +1,151 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sonara
 
-## Getting Started
+Sonara is a music discovery application that recommends songs based on a selected song or a described mood. The project contains a Next.js frontend and a FastAPI backend for music analysis and similarity recommendations.
 
-First, run the development server:
+## Requirements
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js and npm
+- Python 3.11 recommended for the backend
+- A Supabase project and the required API credentials
+
+## Project structure
+
+```text
+.
+├── app/                 # Next.js frontend
+├── actions/             # Server actions used by the frontend
+├── components/          # Reusable UI components
+├── fastapi/             # FastAPI backend and music-analysis models
+├── public/              # Static frontend assets
+└── .env.local           # Local frontend environment variables
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The frontend reads environment variables from `.env.local`. The backend reads them from `fastapi/.env`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Do not commit either environment file or share secret keys publicly. Use the variable names expected by the existing files, including the Supabase credentials and any Spotify, Last.fm, or Gemini credentials required by the feature you are using.
 
-## Learn More
+## Running locally
 
-To learn more about Next.js, take a look at the following resources:
+### 1. Start the backend
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+From the project root:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+cd fastapi
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
 
-## Deploy on Vercel
+The backend runs at [http://localhost:8000](http://localhost:8000). Interactive API documentation is available at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+On later runs, activate the existing environment instead of creating it again:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+cd fastapi
+source .venv/bin/activate
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+### 2. Start the frontend
+
+Open a second terminal from the project root:
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+The frontend uses `NEXT_PUBLIC_API_URL` to locate the backend. For local development, set it to:
+
+```text
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+## Recommendation modes
+
+### Similar-song recommendations
+
+The backend first checks whether the selected song exists in the `Songs` database.
+
+- If it exists, its stored embedding is used to find similar songs.
+- If it does not exist, the backend retrieves an audio preview, extracts audio features with Essentia, and compares the resulting vector with the KNN model.
+
+### Mood recommendations
+
+The mood recommender converts a text description into a vector and returns similar songs from the available song catalogue.
+
+### Song discovery feed
+
+The discovery feed uses songs saved in the user’s library as seed songs and excludes songs already seen or saved by the user.
+
+## macOS limitations
+
+The live audio-feature extraction path depends on Essentia’s TensorFlow predictors, including `TensorflowPredictMusiCNN`. These predictors are not reliably available in the Essentia Python package on Apple Silicon Macs (`arm64`), particularly with Python 3.13.
+
+As a result, macOS users may see an error similar to:
+
+```text
+ImportError: cannot import name 'TensorflowPredictMusiCNN' from 'essentia.standard'
+```
+
+### macOS workaround
+
+In `fastapi/app/custom_vector.py`, comment out the Essentia import:
+
+```python
+# from essentia.standard import MonoLoader, TensorflowPredictMusiCNN, TensorflowPredict2D, RhythmExtractor2013, MusicExtractor
+```
+
+This allows the backend to start and keeps database-based recommendations available. However, the live extraction path will not work.
+
+With the Essentia import commented out, macOS users cannot reliably:
+
+- Recommend songs that are not already in the database
+- Extract features from a new audio preview
+- Use features that depend on the TensorFlow-based Essentia models
+
+Database-based recommendations, mood recommendations using the precomputed model, and other features that do not invoke live Essentia extraction may continue to work.
+
+### Full macOS workaround
+
+To enable live extraction, run the backend in a compatible Linux environment or use an x86_64 Python environment through Rosetta on Apple Silicon. Python 3.11 is recommended. The Essentia TensorFlow predictors must be available before uncommenting the import.
+
+## Windows and Linux
+
+Windows x64 and Linux are the preferred environments for the full backend because the repository includes platform-specific audio-analysis assets. Install `essentia-tensorflow` when using the TensorFlow predictors; the plain `essentia` package does not provide those predictors.
+
+## Changing branches
+
+After switching branches:
+
+```bash
+python -m pip install -r fastapi/requirements.txt
+npm install
+```
+
+The Python dependencies only need to be reinstalled when the requirements change. Environment files are local and may need to be updated if a branch expects different variables.
+
+## Troubleshooting
+
+### Backend cannot find the KNN model
+
+Start Uvicorn from inside the `fastapi` directory. The backend loads model files using paths relative to that directory.
+
+### Backend starts but returns no recommendations for a new song
+
+Check whether the Essentia import is commented out or whether `TensorflowPredictMusiCNN` is unavailable in the current Python environment. This specifically affects songs that are not already in the database.
+
+### Port already in use
+
+Stop the existing development server, or start the backend on another port and update `NEXT_PUBLIC_API_URL` accordingly.
+
+## License and third-party components
+
+This project uses third-party libraries and pretrained model files. Review their individual licenses before redistributing the project or its model assets.
