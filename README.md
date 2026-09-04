@@ -2,6 +2,20 @@
 
 Sonara is a music discovery application that recommends songs based on a selected song or a described mood. The project contains a Next.js frontend and a FastAPI backend for music analysis and similarity recommendations.
 
+> [!WARNING]
+> ### macOS users
+>
+> Sonara's live audio-feature extraction uses Essentia's TensorFlow predictors, including `TensorflowPredictMusiCNN`. These predictors are not reliably available on Apple Silicon Macs (`arm64`), especially with Python 3.13.
+>
+> On macOS, you may need to comment out the Essentia imports in:
+>
+> - `fastapi/app/custom_vector.py`
+> - `fastapi/app/dance_model.py`
+>
+> Commenting them out allows the backend to start and database-based recommendations to work. However, macOS users will not be able to recommend songs that are outside the database or use live audio feature extraction.
+>
+> For full functionality, run the backend in Linux/Docker or use an x86_64 Python 3.11 environment through Rosetta.
+
 ## Requirements
 
 - Node.js and npm
