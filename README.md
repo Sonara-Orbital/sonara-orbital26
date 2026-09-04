@@ -97,7 +97,7 @@ ImportError: cannot import name 'TensorflowPredictMusiCNN' from 'essentia.standa
 
 ### macOS workaround
 
-In `fastapi/app/custom_vector.py`, comment out the Essentia import:
+In `fastapi/app/custom_vector.py` and `fastapi/app/dance_model.py`, comment out the Essentia import:
 
 ```python
 # from essentia.standard import MonoLoader, TensorflowPredictMusiCNN, TensorflowPredict2D, RhythmExtractor2013, MusicExtractor
