@@ -6,7 +6,7 @@ import joblib
 import numpy as np
 import pandas as pd
 from contextlib import asynccontextmanager
-# from essentia.standard import MonoLoader, TensorflowPredictMusiCNN, TensorflowPredict2D, RhythmExtractor2013, Danceability, LoudnessEBUR128, MusicExtractor, AudioLoader
+from essentia.standard import MonoLoader, TensorflowPredictMusiCNN, TensorflowPredict2D, RhythmExtractor2013, Danceability, LoudnessEBUR128, MusicExtractor, AudioLoader
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from sklearn.model_selection import train_test_split

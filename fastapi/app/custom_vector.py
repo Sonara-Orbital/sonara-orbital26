@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import joblib, os, uuid, requests, json, librosa
 import numpy as np
 from contextlib import asynccontextmanager
-# from essentia.standard import MonoLoader, TensorflowPredictMusiCNN, TensorflowPredict2D, RhythmExtractor2013, Danceability, LoudnessEBUR128, MusicExtractor, AudioLoader
+from essentia.standard import MonoLoader, TensorflowPredictMusiCNN, TensorflowPredict2D, RhythmExtractor2013, Danceability, LoudnessEBUR128, MusicExtractor, AudioLoader
 
 
 class TrackRequest(BaseModel):
