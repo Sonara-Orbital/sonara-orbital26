@@ -38,7 +38,7 @@ Sonara is a music discovery application that recommends songs based on a selecte
 
 The frontend reads environment variables from `.env.local`. The backend reads them from `fastapi/.env`.
 
-Do not commit either environment file or share secret keys publicly. Use the variable names expected by the existing files, including the Supabase credentials and any Spotify, Last.fm, or Gemini credentials required by the feature you are using.
+Don't commit either environment file or share secret keys publicly. Use the variable names expected by the existing files, including the Supabase credentials and any Spotify, Last.fm, or Gemini credentials required by the feature you are using.
 
 ## Running locally
 
